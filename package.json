@@ -1,0 +1,20 @@
+{
+  "name": "db4bix",
+  "version": "0.0.1",
+  "description": "DB4bix in Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vagabondan",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^4.1.1",
+    "escape-string-regexp": "^2.0.0",
+    "fast-xml-parser": "^3.12.16",
+    "he": "^1.2.0",
+    "ini": "^1.3.5",
+    "mssql": "^5.1.0",
+    "nyks": "^5.11.7"
+  }
+}

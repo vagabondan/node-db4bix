@@ -1,49 +1,57 @@
 const sql = require('mssql');
+const debug = require('debug')("db4bix:mssql");
+debug('Init');
 
 sql.on('error', err => {
-  // ... error handler
+  console.error("Connection error", err);
 });
 
 
 class MSSQL{
 
-  constructor({config}){
-    config = {
-      user: '...',
-      password: '...',
-      server: 'localhost', // You can use 'localhost\\instance' to connect to named instance
-      database: '...',
-
-      options: {
-        encrypt: true // Use this if you're on Windows Azure
-      }
-    };
-    Object.assign(this, {
-      config
-    });
+  constructor(){
+    Object.assign(this,{
+      pool: undefined
+    })
   }
 
-  async init(){
-    try {
-      let pool = await sql.connect(config)
-      let result1 = await pool.request()
-        .input('input_parameter', sql.Int, value)
-        .query('select * from mytable where id = @input_parameter')
+  async init({config}){
+    config = {
+      user: config.user,
+      password: config.password,
+      server: config.host,
+      database: config.instance,
+      pool: {
+        min: parseInt(config.pool.min),
+        max: parseInt(config.pool.max),
+        idleTimeoutMillis: parseInt(config.pool.idleTimeoutMillis),
+      },
+      options: config.options
+    };
+    this.pool = await sql.connect(config);
+  }
 
-      console.dir(result1)
+  close(){
+    this.pool.close();
+    this.pool = undefined;
+  }
 
-      // Stored procedure
+  /**
+   *
+   * @param q - query string
+   * @returns Array of Arrays: [[c1,c2,...,cn],[c1,c2,...,cn],..., ] => dimension: rows x columns
+   */
+  async query(q){
+    const result = await this.pool.request()
+      .query(q);
 
-      let result2 = await pool.request()
-        .input('input_parameter', sql.Int, value)
-        .output('output_parameter', sql.VarChar(50))
-        .execute('procedure_name');
-
-      console.dir(result2)
-    } catch (err) {
-      // ... error checks
-    }
-
+    // we have to flatten all agregations by column names if any
+    return result.recordset.map(
+      (row) => Object.keys(row).reduce(
+        (acc, key) => acc.concat(row[key]),
+        []
+      )
+    );
   }
 
 }
@@ -52,5 +60,5 @@ class MSSQL{
 module.exports = function(module_holder) {
   // the key in this dictionary can be whatever you want
   // just make sure it won't override other modules
-  module_holder['mssql'] = MSSQL;
+  module_holder['mssql'] = () => new MSSQL();
 };

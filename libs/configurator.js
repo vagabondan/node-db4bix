@@ -73,22 +73,22 @@ class Configurator {
         if(fileConfig.Zabbix.hasOwnProperty(serverName)){
           try{
             const dbs = {};
-            for(const dbName of fileConfig.Zabbix[serverName].DBList){
+            for(const dbName of fileConfig.Zabbix[serverName].dbList){
               try{
-                assert.ok(fileConfig.DB.hasOwnProperty(dbName),"No section "+dbName+" found in fileConfig, but it appears in server "+serverName+" DBList: "+JSON.stringify(fileConfig.Zabbix[serverName].DBList));
-                dbs[dbName] = fileConfig.DB[dbName];
+                assert.ok(fileConfig.DB.hasOwnProperty(dbName),"No section "+dbName+" found in fileConfig, but it appears in server "+serverName+" DBList: "+JSON.stringify(fileConfig.Zabbix[serverName].dbList));
+                dbs[dbName] = Object.assign(fileConfig.DB[dbName], {pool: fileConfig.Pool[fileConfig.DB[dbName].pool || "Common"]});
               }catch(e){
                 console.error("Failed getting fileConfig for DB "+dbName+": "+e.message,e);
               }
             }
             servers.push({
               name: serverName,
-              host: fileConfig.Zabbix[serverName].Host || host,
-              port: fileConfig.Zabbix[serverName].Port || port,
-              proxyName: fileConfig.Zabbix[serverName].ProxyName || proxyName,
-              timeout: fileConfig.Zabbix[serverName].Timeout || timeout,
-              version: fileConfig.Zabbix[serverName].Version || version,
-              configSuffix: fileConfig.Zabbix[serverName].ConfigSuffix || 'DB4bix.config',
+              host: fileConfig.Zabbix[serverName].host || host,
+              port: fileConfig.Zabbix[serverName].port || port,
+              proxyName: fileConfig.Zabbix[serverName].proxyName || proxyName,
+              timeout: fileConfig.Zabbix[serverName].timeout || timeout,
+              version: fileConfig.Zabbix[serverName].version || version,
+              configSuffix: fileConfig.Zabbix[serverName].configSuffix || 'DB4bix.config',
               hostname : os.hostname(),
               fileConfig: fileConfig.Zabbix[serverName],
               dbs,
@@ -108,6 +108,7 @@ class Configurator {
       xmlParserOptions,
       monitorConfig
     }, opts);
+    this.monitorConfig = this.prepareMonitorConfig();
   }
 
   async getConfigsFromZabbix(){
@@ -287,8 +288,8 @@ class Configurator {
         },
         sender: z.zabbixSender,
         params: z.timersConfigs,
-        hosts: z.zbxConfig.hosts,
-        items: z.zbxConfig.items
+        hosts: z.zbxConfig && z.zbxConfig.hosts,
+        items: z.zbxConfig && z.zbxConfig.items
       }
     });
   }

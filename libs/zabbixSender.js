@@ -35,8 +35,9 @@ const addClockNs = function(obj, clockNS){
 
 class ZabbixSender {
 
-  constructor({host, port, proxyName, timeout, hostname, version}) {
+  constructor({name, host, port, proxyName, timeout, hostname, version}) {
     Object.assign(this, {
+      name: name || "DefaultZabbixName",
       host: host || 'localhost',
       port: port || 10051,
       proxyName: proxyName || os.hostname(),

@@ -1,14 +1,12 @@
+'use strict';
+const Processor = require('./libs/timerProcessor');
 const debug = require('debug')("db4bix:index");
 debug('Init');
-const Sender = require('./libs/zabbixSender');
-const Processor = require('./libs/mainProcessor');
-
-const config = require('./libs/configurator');
 
 
 ( async ()=>{
-  let response;
-  await config.parseConfigsFromZabbix();
+  const processor = new Processor();
+  processor.init();
 
   /*
   response = await  sender.sendHistoryData({

@@ -42,11 +42,12 @@ class Configurator {
    */
   constructor(opts) {
     let host = 'localhost';
-    let config = {};
+    let fileConfig = {};
     let port = 10051;
     let timeout = 5000;
     let proxyName = os.hostname();
     let version = "3.4.12";
+    let monitorConfig = [];
     const xmlParserOptions = {
       attributeNamePrefix : "",
       attrNodeName: false, //default is 'false'
@@ -67,44 +68,45 @@ class Configurator {
 
     const servers = [];
     if(fs.existsSync(zabbix_conf_path)){
-      config = ini.parse(fs.readFileSync(zabbix_conf_path, 'utf-8'));
-      for(const serverName in config.Zabbix){
-        if(config.Zabbix.hasOwnProperty(serverName)){
+      fileConfig = ini.parse(fs.readFileSync(zabbix_conf_path, 'utf-8'));
+      for(const serverName in fileConfig.Zabbix){
+        if(fileConfig.Zabbix.hasOwnProperty(serverName)){
           try{
             const dbs = {};
-            for(const dbName of config.Zabbix[serverName].DBList){
+            for(const dbName of fileConfig.Zabbix[serverName].DBList){
               try{
-                assert.ok(config.DB.hasOwnProperty(dbName),"No section "+dbName+" found in config, but it appears in server "+serverName+" DBList: "+JSON.stringify(config.Zabbix[serverName].DBList));
-                dbs[dbName] = config.DB[dbName];
+                assert.ok(fileConfig.DB.hasOwnProperty(dbName),"No section "+dbName+" found in fileConfig, but it appears in server "+serverName+" DBList: "+JSON.stringify(fileConfig.Zabbix[serverName].DBList));
+                dbs[dbName] = fileConfig.DB[dbName];
               }catch(e){
-                console.error("Failed getting config for DB "+dbName+": "+e.message,e);
+                console.error("Failed getting fileConfig for DB "+dbName+": "+e.message,e);
               }
             }
             servers.push({
               name: serverName,
-              host: config.Zabbix[serverName].Host || host,
-              port: config.Zabbix[serverName].Port || port,
-              proxyName: config.Zabbix[serverName].ProxyName || proxyName,
-              timeout: config.Zabbix[serverName].Timeout || timeout,
-              version: config.Zabbix[serverName].Version || version,
-              configSuffix: config.Zabbix[serverName].ConfigSuffix || 'DB4bix.config',
+              host: fileConfig.Zabbix[serverName].Host || host,
+              port: fileConfig.Zabbix[serverName].Port || port,
+              proxyName: fileConfig.Zabbix[serverName].ProxyName || proxyName,
+              timeout: fileConfig.Zabbix[serverName].Timeout || timeout,
+              version: fileConfig.Zabbix[serverName].Version || version,
+              configSuffix: fileConfig.Zabbix[serverName].ConfigSuffix || 'DB4bix.config',
               hostname : os.hostname(),
-              config: config.Zabbix[serverName],
+              fileConfig: fileConfig.Zabbix[serverName],
               dbs,
               opts,
             });
           }catch(e){
-            console.error("Failed getting config for server " + serverName + ": " + e.message,e);
+            console.error("Failed getting fileConfig for server " + serverName + ": " + e.message,e);
           }
         }        
       }
     }
 
     Object.assign(this, {
-      config,
+      fileConfig: fileConfig,
       zabbixServers: servers,
       hostname : os.hostname(),
-      xmlParserOptions
+      xmlParserOptions,
+      monitorConfig
     }, opts);
   }
 
@@ -221,7 +223,7 @@ class Configurator {
     return result;
   }
 
-  async parseConfigsFromZabbix(){
+  async updateConfiguration(){
     const zbxConfigs = await this.getConfigsFromZabbix();
     const zabbixes = this.zabbixServers;
     for (let i=0; i < zbxConfigs.length; ++i){ // for each Zabbix Server
@@ -251,7 +253,7 @@ class Configurator {
 
       // Find all configuration items within Zabbix Server
       const cfgItems = zcfg.items.data.filter(item => cfgSuffixRegExp.test(item[keyOffset]));
-      zabbixes[i].paramsConfigs = [];
+      zabbixes[i].timersConfigs = [];
       for(let j=0; j < cfgItems.length; ++j){ // parse all configuration items
         const hostid = cfgItems[j][hostidOffset];
         const itemid = cfgItems[j][itemidOffset];
@@ -263,21 +265,39 @@ class Configurator {
         const paramsParsed = this.parseXMLConfig({xml: paramsXML});                     // parse XML to JSON
         const paramsByTime = Configurator.groupParamsByTime({params: paramsParsed});    // group params by time
 
-        zabbixes[i].paramsConfigs.push({                                                // save params config
+        zabbixes[i].timersConfigs.push({                                                // save params config
           itemid,
           hostid,
           db: dbName,
-          params: paramsByTime
+          timers: paramsByTime
         });
 
       }
-
-      debug(cfgItems);
     }
+    this.monitorConfig = this.prepareMonitorConfig();
+    return this.getMonitorConfig();
   }
 
+  prepareMonitorConfig(){
+    return this.zabbixServers.map(z => {
+      return {
+        name: z.name,
+        targets: {
+          dbs: z.dbs
+        },
+        sender: z.zabbixSender,
+        params: z.timersConfigs,
+        hosts: z.zbxConfig.hosts,
+        items: z.zbxConfig.items
+      }
+    });
+  }
+
+  getMonitorConfig(){
+    return this.monitorConfig;
+  }
 
 }
 
 
-module.exports = new Configurator();
+module.exports = Configurator;

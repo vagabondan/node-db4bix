@@ -2,8 +2,8 @@
 
 const net = require('net');
 const os  = require('os');
-const defer = require('nyks/promise/defer');
-const drain = require('nyks/stream/drain');
+const defer = require('./utils/defer');
+const drain = require('./utils/drain');
 const fs    = require('fs');
 const ini   = require('ini');
 const assert = require('assert');
@@ -217,9 +217,9 @@ class ZabbixSender {
    */
   async send(data){
     data = ZabbixSender.protocolWrap(data);
-    var timeout = defer();
-    var i = setTimeout(timeout.reject, this.timeout);
-    var client = new net.Socket();
+    const timeout = defer();
+    const i = setTimeout(timeout.reject, this.timeout);
+    const client = new net.Socket();
     client.on('error', timeout.reject);
     try {
       let connect = new Promise((resolve) => client.connect(this.port, this.host, resolve));
@@ -227,7 +227,7 @@ class ZabbixSender {
       client.write(data);
       let response = await Promise.race([drain(client), timeout]);
       return ZabbixSender.parseResponse(response);
-    } finally {
+    }finally {
       clearTimeout(i);
       client.destroy();
     }

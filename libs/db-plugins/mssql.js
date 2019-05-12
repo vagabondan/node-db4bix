@@ -15,20 +15,21 @@ class MSSQL{
     })
   }
 
-  async init({config}){
-    config = {
-      user: config.user,
-      password: config.password,
-      server: config.host,
-      database: config.instance,
+  async init({conf}){
+    conf = {
+      user: conf.user,
+      password: conf.password,
+      server: conf.host,
+      database: conf.instance,
       pool: {
-        min: parseInt(config.pool.min),
-        max: parseInt(config.pool.max),
-        idleTimeoutMillis: parseInt(config.pool.idleTimeoutMillis),
+        min: parseInt(conf.pool.min),
+        max: parseInt(conf.pool.max),
+        idleTimeoutMillis: parseInt(conf.pool.idleTimeoutMillis),
       },
-      options: config.options
+      options: conf.options
     };
-    this.pool = await sql.connect(config);
+    this.pool = new sql.ConnectionPool(conf);
+    await this.pool.connect();
   }
 
   close(){
@@ -50,7 +51,14 @@ class MSSQL{
       (row) => Object.keys(row).reduce(
         (acc, key) => acc.concat(row[key]),
         []
-      )
+      ).map( c => {
+        try{
+          return c.trim();
+        }catch(e){
+          debug("Error on trimming value "+c+": "+e.message);
+          return c;
+        }
+      })
     );
   }
 

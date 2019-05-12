@@ -47,7 +47,6 @@ class Configurator {
     let timeout = 5000;
     let proxyName = os.hostname();
     let version = "3.4.12";
-    let monitorConfig = [];
     const xmlParserOptions = {
       attributeNamePrefix : "",
       attrNodeName: false, //default is 'false'
@@ -66,53 +65,60 @@ class Configurator {
       tagValueProcessor : a => he.decode(a) //default is a=>a
     };
 
-    const servers = [];
+    const zabbixes = [];
+    let dbs = [];
     if(fs.existsSync(zabbix_conf_path)){
       fileConfig = ini.parse(fs.readFileSync(zabbix_conf_path, 'utf-8'));
-      for(const serverName in fileConfig.Zabbix){
-        if(fileConfig.Zabbix.hasOwnProperty(serverName)){
-          try{
-            const dbs = {};
-            for(const dbName of fileConfig.Zabbix[serverName].dbList){
-              try{
-                assert.ok(fileConfig.DB.hasOwnProperty(dbName),"No section "+dbName+" found in fileConfig, but it appears in server "+serverName+" DBList: "+JSON.stringify(fileConfig.Zabbix[serverName].dbList));
-                dbs[dbName] = Object.assign(fileConfig.DB[dbName], {pool: fileConfig.Pool[fileConfig.DB[dbName].pool || "Common"]});
-              }catch(e){
-                console.error("Failed getting fileConfig for DB "+dbName+": "+e.message,e);
-              }
-            }
-            servers.push({
-              name: serverName,
-              host: fileConfig.Zabbix[serverName].host || host,
-              port: fileConfig.Zabbix[serverName].port || port,
-              proxyName: fileConfig.Zabbix[serverName].proxyName || proxyName,
-              timeout: fileConfig.Zabbix[serverName].timeout || timeout,
-              version: fileConfig.Zabbix[serverName].version || version,
-              configSuffix: fileConfig.Zabbix[serverName].configSuffix || 'DB4bix.config',
-              hostname : os.hostname(),
-              fileConfig: fileConfig.Zabbix[serverName],
-              dbs,
-              opts,
-            });
-          }catch(e){
-            console.error("Failed getting fileConfig for server " + serverName + ": " + e.message,e);
-          }
-        }        
-      }
+
+      // Zabbix servers
+      Object.keys(fileConfig.Zabbix).forEach(serverName => {
+        const zabbix = fileConfig.Zabbix[serverName];
+        try{
+          zabbixes.push({
+            name: serverName,
+            updateConfigPeriod: fileConfig.updateConfigPeriod,
+            sendDataPeriod: zabbix.sendDataPeriod || 60,
+            host: zabbix.host || host,
+            port: zabbix.port || port,
+            proxyName: zabbix.proxyName || proxyName,
+            timeout: zabbix.timeoutMillis || timeout,
+            version: zabbix.version || version,
+            configSuffix: zabbix.configSuffix || 'DB4bix.config',
+            hostname : os.hostname(),
+            fileConfig: zabbix,
+          });
+        }catch(e){
+          console.error("Failed getting fileConfig for server " + serverName + ": " + e.message,e);
+        }
+      });
+
+      // DBs
+      dbs = Object.keys(fileConfig.DB).reduce((acc,dbName) => {
+        // merge DB section data with Pool section data
+        acc.push(Object.assign(fileConfig.DB[dbName], {pool: fileConfig.Pool[fileConfig.DB[dbName].pool || "Common"]}, {name: dbName}));
+        return acc;
+      },[]);
+
     }
 
     Object.assign(this, {
-      fileConfig: fileConfig,
-      zabbixServers: servers,
+      fileConfig,
+      zabbixes,
+      dbs,
       hostname : os.hostname(),
-      xmlParserOptions,
-      monitorConfig
+      xmlParserOptions
     }, opts);
-    this.monitorConfig = this.prepareMonitorConfig();
+  }
+
+  getMonitorConfig(){
+    return {
+      zabbixes: this.zabbixes,
+      dbs: this.dbs
+    };
   }
 
   async getConfigsFromZabbix(){
-    const zabbixes = this.zabbixServers;
+    const zabbixes = this.zabbixes;
     zabbixes.forEach(z => z.zabbixSender = z.zabbixSender || new Sender(z));
     return Promise.all(zabbixes.map(z => z.zabbixSender.requestConfig()));
   }
@@ -145,24 +151,24 @@ class Configurator {
   }
 
   /**
-   * Groups macros by hosts
+   * Groups macros by hostid
    * @param hostmacro
    */
-  getHostMacros({hostmacro}){
-    const hostmacroid = hostmacro.fields.findIndex(f => f === "hostmacroid");
-    const hostid = hostmacro.fields.findIndex(f => f === "hostid");
-    const macro = hostmacro.fields.findIndex(f => f === "macro");
-    const value = hostmacro.fields.findIndex(f => f === "value");
+  groupMacrosByHostid({hostmacro}){
+    const hostmacroidOffset = hostmacro.fields.findIndex(f => f === "hostmacroid");
+    const hostidOffset = hostmacro.fields.findIndex(f => f === "hostid");
+    const macroOffset = hostmacro.fields.findIndex(f => f === "macro");
+    const valueOffset = hostmacro.fields.findIndex(f => f === "value");
 
     const macros ={};
     hostmacro.data.forEach(m => {
-      if(!Array.isArray(macros[m[hostid]])){
-        macros[m[hostid]] = [];
+      if(!Array.isArray(macros[m[hostidOffset]])){
+        macros[m[hostidOffset]] = [];
       }
-      macros[m[hostid]].push({
-        macro: m[macro],
-        value: m[value],
-        hostmacroid: m[hostmacroid]
+      macros[m[hostidOffset]].push({
+        macro: m[macroOffset],
+        value: m[valueOffset],
+        hostmacroid: m[hostmacroidOffset]
       });
     });
 
@@ -216,6 +222,10 @@ class Configurator {
     ["discovery", "query", "multiquery"].forEach(paramType => {
         // Param type is always array
         params[paramType].forEach(param => {
+          // items => item
+          param.items ? param.item = param.items : null;
+          // prefix + item
+          param.item = param.item.split("|").map(key => params.prefix+key).join("|");
           Array.isArray(result[param.time]) ?
             result[param.time].push(param) :
             result[param.time] = [].concat(param);
@@ -224,20 +234,53 @@ class Configurator {
     return result;
   }
 
+  /**
+   * Zabbix data helper
+   * @param source
+   * @param fields
+   */
+  static getFieldOffsetMap({source, fields}){
+    fields = fields || source.fields;
+    return fields.reduce(
+      (acc, field) =>{
+        acc[field] = source.fields.findIndex(f => f === field);
+        return acc;
+      },
+      {}
+    );
+  }
+
+  static getUsefulFields({fields, source}){
+    const indices = Configurator.getFieldOffsetMap({fields, source});
+    return {
+      fields: fields,
+      data: source.data
+        .map(item => item.filter((field, index)=> Object.values(indices).includes(index)))  // only useful fields of items should stay
+    };
+  }
+
   async updateConfiguration(){
     const zbxConfigs = await this.getConfigsFromZabbix();
-    const zabbixes = this.zabbixServers;
-    for (let i=0; i < zbxConfigs.length; ++i){ // for each Zabbix Server
-      const zcfg = zbxConfigs[i];
-      zabbixes[i].zbxConfig = zcfg;
-      const hostmacros = this.getHostMacros({hostmacro: zcfg.hostmacro});
+    const zabbixes = this.zabbixes;
+    for (let i=0; i < zbxConfigs.length; ++i) { // for each Zabbix Server
+      let {hosts, hostmacro, items} = zbxConfigs[i];
+      items = Configurator.getUsefulFields({fields: ["itemid", "type", "hostid", "key_", "status", "value_type", "params"], source: items});
+      hosts = Configurator.getUsefulFields({fields: ["hostid", "host", "status", "name"], source: hosts});
+      zabbixes[i].zabbixConfig = {
+        hosts, items, hostmacro
+      };
+    }
 
+    zabbixes.forEach( zabbix => {
+      const zcfg = zabbix.zabbixConfig;
+      const hostmacros = this.groupMacrosByHostid({hostmacro: zcfg.hostmacro});
 
       // Offsets in items array
-      const keyOffset = zcfg.items.fields.findIndex(f => f === "key_");
-      const paramsOffset = zcfg.items.fields.findIndex(f => f === "params");
-      const hostidOffset = zcfg.items.fields.findIndex(f => f === "hostid");
-      const itemidOffset = zcfg.items.fields.findIndex(f => f === "itemid");
+      const itemsOffsets = Configurator.getFieldOffsetMap({source: zabbix.zabbixConfig.items});
+      const keyOffset = itemsOffsets["key_"];
+      const paramsOffset = itemsOffsets["params"];
+      const hostidOffset = itemsOffsets["hostid"];
+      const itemidOffset = itemsOffsets["itemid"];
 
       // Substitute macros in all items
       zcfg.items.data.forEach((item, ind, arr ) => {
@@ -249,53 +292,32 @@ class Configurator {
        * Regexp for config suffix in Zabbix: DB4bix.config[...,<DSN>]
        * @type {RegExp}
        */
-      const cfgSuffixRegExp = new RegExp(".*\\."+escapeStringRegexp(zabbixes[i].configSuffix)+"\\[(?:.*,)?([^,\\[\\]\\s]+){1}\\]","i");
-
-
+      const cfgSuffixRegExp = new RegExp(".*\\."+escapeStringRegexp(zabbix.configSuffix)+"\\[(?:.*,)?([^,\\[\\]\\s]+){1}\\]","i");
       // Find all configuration items within Zabbix Server
       const cfgItems = zcfg.items.data.filter(item => cfgSuffixRegExp.test(item[keyOffset]));
-      zabbixes[i].timersConfigs = [];
-      for(let j=0; j < cfgItems.length; ++j){ // parse all configuration items
-        const hostid = cfgItems[j][hostidOffset];
-        const itemid = cfgItems[j][itemidOffset];
-        const key = cfgItems[j][keyOffset];
-        const dbName = cfgSuffixRegExp.exec(key)[1];
-
-        // Prepare params configuration
-        const paramsXML = cfgItems[j][paramsOffset];                                    // get params in XML form
-        const paramsParsed = this.parseXMLConfig({xml: paramsXML});                     // parse XML to JSON
-        const paramsByTime = Configurator.groupParamsByTime({params: paramsParsed});    // group params by time
-
-        zabbixes[i].timersConfigs.push({                                                // save params config
-          itemid,
-          hostid,
-          db: dbName,
-          timers: paramsByTime
-        });
-
-      }
-    }
-    this.monitorConfig = this.prepareMonitorConfig();
-    return this.getMonitorConfig();
-  }
-
-  prepareMonitorConfig(){
-    return this.zabbixServers.map(z => {
-      return {
-        name: z.name,
-        targets: {
-          dbs: z.dbs
-        },
-        sender: z.zabbixSender,
-        params: z.timersConfigs,
-        hosts: z.zbxConfig && z.zbxConfig.hosts,
-        items: z.zbxConfig && z.zbxConfig.items
-      }
+      zabbix.params = cfgItems.reduce((acc, item) =>{
+          try{
+            // First, check security consuderations
+            const dbName = cfgSuffixRegExp.exec(item[keyOffset])[1];
+            assert.ok(zabbix.fileConfig.dbs.includes(dbName),"Zabbix server "+zabbix.name+" is not allowed to monitor DB "+dbName+
+              ". Please check DB4bix "+zabbix.proxyName+" file config or configuration item {"+
+              ["itemid","hostid","key_"].reduce((acc, key)=> acc.concat(key,": ",item[itemsOffsets[key]],", "),"")+
+              "} at Zabbix Server "+zabbix.name+". Configuration item is skipped.");
+            // Then add configuration
+            acc.push({
+              itemid: item[itemidOffset],
+              hostid: item[hostidOffset],
+              dbName,
+              timers: Configurator.groupParamsByTime({params: this.parseXMLConfig({xml: item[paramsOffset]})})
+            })
+          }catch(e){
+            console.warn(e.message,e);
+          }
+          return acc;
+        }
+      ,[]);
     });
-  }
-
-  getMonitorConfig(){
-    return this.monitorConfig;
+    return this.getMonitorConfig();
   }
 
 }

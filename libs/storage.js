@@ -8,7 +8,7 @@ class Storage{
     })
   }
 
-  async push({data, sender, items}){
+  async push(data){
     this.storage.push(data);
   }
 

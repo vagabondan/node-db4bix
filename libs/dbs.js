@@ -29,15 +29,15 @@ const msleep = require('./utils/sleep').msleep;
 
 class DB{
 
-  constructor({config}){
+  constructor({conf}){
     Object.assign(this,{
-      config,
-      connector: module_holder[config.type]()
+      conf,
+      connector: module_holder[conf.type]()
     });
   }
 
   async init(){
-    await this.connector.init({config: this.config});
+    await this.connector.init({conf: this.conf});
   }
 
   async query(q){

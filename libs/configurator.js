@@ -76,7 +76,7 @@ class Configurator {
         try{
           zabbixes.push({
             name: serverName,
-            updateConfigPeriod: fileConfig.updateConfigPeriod,
+            //updateConfigPeriod: fileConfig.updateConfigPeriod,
             sendDataPeriod: zabbix.sendDataPeriod || 60,
             host: zabbix.host || host,
             port: zabbix.port || port,
@@ -108,6 +108,10 @@ class Configurator {
       hostname : os.hostname(),
       xmlParserOptions
     }, opts);
+  }
+
+  getUpdatePeriod(){
+    return this.fileConfig.updateConfigPeriod;
   }
 
   getMonitorConfig(){
@@ -305,7 +309,7 @@ class Configurator {
               "} at Zabbix Server "+zabbix.name+". Configuration item is skipped.");
             // Then add configuration
             acc.push({
-              itemid: item[itemidOffset],
+              confItemid: item[itemidOffset],
               hostid: item[hostidOffset],
               dbName,
               timers: Configurator.groupParamsByTime({params: this.parseXMLConfig({xml: item[paramsOffset]})})

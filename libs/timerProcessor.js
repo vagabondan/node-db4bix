@@ -12,13 +12,14 @@ debug('Init');
 class TimerProcessor{
 
   constructor(opts){
-    const timers = [];
-    const configurator = {};
     Object.assign(this,{
-      timers,
-      configurator,
+      timers: [],
+      monitors: [],
+      senders: [],
+      configurator: {},
       storage: undefined,
-      dbConnectors: []
+      dbConnectors: [],
+      updateTimerId: undefined
     });
   }
 
@@ -60,14 +61,16 @@ class TimerProcessor{
   }
 
   deleteDBs({dbs}){
-    //TODO TBD!
-    console.error("Delete DB procedure is not implemented yet!");
+    dbs.forEach(delDB => {
+      const index = this.dbConnectors.findIndex( db => db.conf.name === delDB.conf.name);
+      index >=0 ? this.dbConnectors.splice(index,1) : null;
+    });
   }
 
   updateTargets({dbs}){
     //delete
     const newDBNames = dbs.map(db => db.name);
-    const dbToDelete = this.dbConnectors.filter(c => newDBNames.includes(c.conf.name));
+    const dbToDelete = this.dbConnectors.filter(c => !newDBNames.includes(c.conf.name));
     this.deleteDBs({dbs: dbToDelete});
 
     // add/update
@@ -76,13 +79,91 @@ class TimerProcessor{
     });
   }
 
+  updateMonitors({conf}){
+    const monitors =[];
+    for (const zabbix of conf.zabbixes){
+      for(const {dbName, confItemid, hostid, timers} of zabbix.params){
+        Object.keys(timers).forEach(period => {
+          const monitorNew = {zabbixName: zabbix.name, dbName, confItemid, hostid, period};
+          const monitorOld = this.monitors.find(m =>
+            Object.keys(monitorNew).reduce((acc, key) =>
+              m[key] === monitorNew[key] && acc, true)
+          );
+          if(monitorOld){ // add
+            monitors.push(Object.assign(monitorNew, {timerid: monitorOld.timerid}));
+          } else{
+            const query = this.query.bind(this, monitorNew);
+            const timerid = this.createTimer({period, query});
+            monitors.push(Object.assign(monitorNew, {timerid}));
+          }
+        });
+      }
+    }
+
+    // delete old non-actual timers for old monitorss
+    /**
+     * monitors - is ethalon
+     * this.monitor - old monitors
+     */
+    const toDelete = this.monitors.filter(m =>
+      !monitors.find(mNew =>
+        Object.keys(m).reduce((acc, key) => m[key] === mNew[key] && acc ,true)
+      )
+    );
+    toDelete.forEach( m =>
+      this.cancelTimer({id: m.timerid})
+    );
+
+    // Update!
+    this.monitors = monitors;
+
+  }
+
+  prepareToSendData({period}){
+    const query = this.sendData.bind(this);
+    return this.createTimer({period, query, firstDelay: period});
+  }
+
+  updateSendData({sendersConf}){
+    const senders = [];
+    sendersConf.forEach(c => {
+      const senderNew = {zabbixName: c.zabbixName, period: c.sendDataPeriod};
+      const senderOld = this.senders.find(s => s.zabbixName === senderNew.zabbixName && s.sendDataPeriod === senderNew.sendDataPeriod);
+      if(senderOld){ // add to registry
+        senders.push(Object.assign(senderNew, {timerid: senderOld.timerid}))
+      }else{          // create new one
+        const query = this.sendData.bind(this, {zabbixName: c.zabbixName});
+        const timerid = this.createTimer({period: c.sendDataPeriod, query, firstDelay: c.sendDataPeriod});
+        senders.push(Object.assign(senderNew, {timerid}));
+      }
+    });
+
+    // delete old non-actual timers for old senders
+    /**
+     * senders - is ethalon
+     * this.senders - old senders
+     */
+    const toDelete = this.senders.filter(s =>
+      !senders.find(sNew =>
+        s.zabbixName === sNew.zabbixName && s.sendDataPeriod === sNew.sendDataPeriod
+      )
+    );
+    toDelete.forEach( m =>
+      this.cancelTimer({id: m.timerid})
+    );
+
+    // Update
+    this.senders = senders;
+
+  }
+
   prepareToMonitor({conf}){
     this.updateTargets({dbs: conf.dbs});
     for (const zabbix of conf.zabbixes){
-      for(const {dbName, itemid, hostid, timers} of zabbix.params){
+      for(const {dbName, confItemid, hostid, timers} of zabbix.params){
         //assert.ok(fileConfig.DB.hasOwnProperty(dbName),"No section [DB."+dbName+"] found in file config, but it appears in section [Zabbix."+serverName+"].dbs: "+JSON.stringify(zabbix.dbs));
         Object.keys(timers).forEach(period => {
-          const query = this.query.bind(this, {zabbixName: zabbix.name, dbName, itemid, hostid, period});
+          const query = this.query.bind(this, {zabbixName: zabbix.name, dbName, confItemid, hostid, period});
           this.createTimer({period, query});
         });
       }
@@ -136,8 +217,16 @@ class TimerProcessor{
     registerTimer(                                                            // set timer with bound id
       setTimeout(
         async function setQuery(){
-          await query();
-          registerTimer(setTimeout(setQuery, period));                   // reset timer with bound id
+          let newPeriod = undefined;
+          try{
+            // if query returns value, then it should be new period
+            newPeriod = await query();
+          }catch(e){
+            console.error("Exception on query for timer id: "+id+". Message: "+e.message,e);
+          }finally {
+            newPeriod = isNaN(newPeriod) ? period : checkPeriod(newPeriod);
+            registerTimer(setTimeout(setQuery, newPeriod));                   // reset timer with bound id
+          }
         },
         firstDelay || Math.random()*30*1000                                   // first run is randomly shifted up to 30 sec by default
       )
@@ -163,12 +252,7 @@ class TimerProcessor{
     dataArray.length = 0;
   }
 
-  prepareToSendData({period}){
-    const query = this.sendData.bind(this);
-    return this.createTimer({period, query, firstDelay: period});
-  }
-
-  async init(){
+  async init_backup(){
     try{
       this.storage = new Storage();
       this.configurator = new Configurator();
@@ -178,46 +262,45 @@ class TimerProcessor{
       this.prepareToSendData({period: conf.zabbixes.reduce((acc, v) => Math.min(acc, v.sendDataPeriod), Infinity)});
       debug(conf);
     }catch(e){
-      console.error("Error getting config from Zabbix",e);
+      console.error("Error on init: "+e.message,e);
+    }
+  }
+
+  async init(){
+    try{
+      this.storage = new Storage();
+      this.configurator = new Configurator();
+      const query = this.updatePeriodically.bind(this);
+      this.updateTimerId = this.createTimer({period: this.configurator.getUpdatePeriod(), query, firstDelay: 0.5});
+    }catch(e){
+      console.error("Error on init: "+e.message,e);
     }
   }
 
   async updatePeriodically(){
-    // TODO TBD!
-    this.storage = this.storage || new Storage();
-    const configurator = new Configurator();
-    const confNew = await configurator.updateConfiguration();
-    const conf = this.configurator && this.configurator.getMonitorConfig();
-    this.prepareToMonitor({conf, confNew});
+    try{
+      this.storage = this.storage || new Storage();
+      const configurator = new Configurator();
+      const conf = await configurator.updateConfiguration();
 
-    if(hash(confNew) !== hash(conf)){
-      const diff = {};
+      this.updateTargets({dbs: conf.dbs});
 
-      /************************************************************/
-      // Zabbix Servers
-      // Update/delete
-      diff.zabbixServers = conf.reduce((acc, z) => {
-        const zNew = confNew.find(zNew => z.name === zNew.name);
-        if(zNew){
-          if(hash(z) !== hash(zNew)){ // z => Update
-            acc.toUpdate ? acc.toUpdate.push(z) : acc.toUpdate = [].concat(z);
-          }
-        }else{ // z => delete
-          acc.toDelete ? acc.toDelete.push(z) : acc.toDelete = [].concat(z);
+      this.updateMonitors({conf});
+
+      const sendersConf = conf.zabbixes.map(z => {
+        return {
+          zabbixName: z.name,
+          sendDataPeriod: z.sendDataPeriod
         }
-        return acc;
-      },{});
-      // insert
-      Object.assign(diff.zabbixServers,{
-        toInsert: confNew.filter(zNew => conf.find(z => z.name === zNew.name ))
       });
-      /************************************************************/
+      this.updateSendData({sendersConf});
 
-
-
-
-
+      // finally update configurator
+      this.configurator = configurator;
+    }catch(e){
+      console.error("Error on updatePeriodically: "+e.message,e);
     }
+    return this.configurator.getUpdatePeriod()
   }
 
   createMonitorTimer({period, dbConnector, queries, sender, items}) {
@@ -300,11 +383,11 @@ class TimerProcessor{
     return data;
   }
 
-  getQueries({period, zabbixName, itemid}){
+  getQueries({period, zabbixName, confItemid}){
     return this.configurator
       .getMonitorConfig()
       .zabbixes.find(z => z.name === zabbixName)
-      .params.find(p => p.itemid === itemid)
+      .params.find(p => p.confItemid === confItemid)
       .timers[period];
   }
 
@@ -325,17 +408,17 @@ class TimerProcessor{
       .getMonitorConfig().zabbixes.find(z => z.name === zabbixName).zabbixSender
   }
 
-  async query({zabbixName, dbName, itemid, hostid, period}){
+  async query({zabbixName, dbName, confItemid, hostid, period}){
     try{
       const connector = this.getDBConnector({dbName});
       assert.ok(connector,"No DB connector found for DB "+dbName+". Query "+
         zabbixName+", "+
         hostid+", "+
-        itemid+", "+
+        confItemid+", "+
         period+
         " is skipped."
       );
-      this.getQueries({period, zabbixName, itemid}).forEach(async (q, i, arr) => {
+      this.getQueries({period, zabbixName, confItemid}).forEach(async (q, i, arr) => {
         if(q.status !== "run"){
           arr[i].status = "run";
           try{
@@ -344,7 +427,7 @@ class TimerProcessor{
             assert.ok(table.length > 0,"Query returned no data "+
               zabbixName+", "+
               hostid+", "+
-              itemid+", "+
+              confItemid+", "+
               period+", "+
               JSON.stringify(q));
             const data = TimerProcessor.convertToMonitoringData({query: q, table, items: this.getItems({zabbixName, hostid})});
@@ -361,13 +444,20 @@ class TimerProcessor{
     }
   }
 
+  cancelTimer({id}){
+    const index = this.timers.findIndex(t => t.id === id);
+    // stop timer
+    clearTimeout(this.timers[index].timer);
+    // delete timer
+    this.timers.splice(index,1);
+  }
+
   cancelAllTimers() {
     debug("cancelAllTimers started");
     this.timers.forEach( t => t.timer && clearTimeout(t.timer));
     // clear timer Array
     this.timers.length = 0;
   }
-
 
 }
 

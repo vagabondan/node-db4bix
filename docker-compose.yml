@@ -1,0 +1,13 @@
+version: "3.1"
+services:
+  db4bix:
+    image: vagabondan:db4bix
+    restart: unless-stopped
+    volumes:
+      - "./config:/app/config"
+    networks:
+      - db4bix
+
+networks:
+  db4bix:
+

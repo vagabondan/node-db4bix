@@ -14,6 +14,10 @@
     "monitoring",
     "plugin"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vagabondan/node-db4bix.git"
+  },
   "homepage": "https://github.com/vagabondan/node-db4bix#readme",
   "author": "Vagabondan",
   "license": "MIT",

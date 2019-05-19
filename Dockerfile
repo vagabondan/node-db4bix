@@ -1,4 +1,4 @@
-FROM node:lts-jessie
+FROM node:lts-alpine
 
 # Создать директорию app
 WORKDIR /app

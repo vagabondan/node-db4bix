@@ -8,15 +8,4 @@ debug('Init');
   const processor = new Processor();
   processor.init();
 
-  /*
-  response = await  sender.sendHistoryData({
-    "12551681": [
-        {"{#DATABASE}":"UiPath"}
-      ]
-    ,
-  });
-  debug(response)
-  */
 })();
-
-//sender.sendd({"somekey": 42}); //if you prefer

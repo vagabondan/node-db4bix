@@ -1,11 +1,20 @@
 {
   "name": "db4bix",
-  "version": "0.0.1",
-  "description": "DB4bix in Node.js",
+  "version": "0.0.5",
+  "description": "DB4bix in Node.js: DB monitoring tool for Zabbix",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "zabbix",
+    "dbforbix",
+    "db4bix",
+    "DB",
+    "monitoring",
+    "plugin"
+  ],
+  "homepage": "https://github.com/vagabondan/node-db4bix#readme",
   "author": "Vagabondan",
   "license": "MIT",
   "dependencies": {

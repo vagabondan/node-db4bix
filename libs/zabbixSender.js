@@ -218,7 +218,8 @@ class ZabbixSender {
    */
   async send(data){
     data = ZabbixSender.protocolWrap(data);
-    const timeout = defer();
+    const timeout = defer(new Error("Abort connecting to Zabbix Server: "+
+    this.name+"@"+this.host+":"+this.port+" by timeout set to " + this.timeout + " ms."));
     const i = setTimeout(timeout.reject, this.timeout);
     const client = new net.Socket();
     client.on('error', timeout.reject);
@@ -228,7 +229,14 @@ class ZabbixSender {
       client.write(data);
       let response = await Promise.race([drain(client), timeout]);
       return ZabbixSender.parseResponse(response);
-    }finally {
+    }
+    /*
+    catch(err){
+      console.error(err);
+      throw(err);
+    }
+    */
+    finally {
       clearTimeout(i);
       client.destroy();
     }

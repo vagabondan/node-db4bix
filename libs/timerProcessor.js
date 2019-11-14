@@ -75,7 +75,12 @@ class TimerProcessor{
 
     // add/update
     dbs.forEach(db => {
-      this.registerDB({conf: db});
+      try{
+        this.registerDB({conf: db});
+      }catch(err){
+        console.error("Error while registering DB: " + 
+          JSON.stringify({type: db.type, instance: db.instance, host: db.host, user: db.user}), err);
+      }
     });
   }
 

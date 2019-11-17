@@ -64,9 +64,4 @@ class MSSQL{
 
 }
 
-
-module.exports = function(module_holder) {
-  // the key in this dictionary can be whatever you want
-  // just make sure it won't override other modules
-  module_holder['mssql'] = () => new MSSQL();
-};
+module.exports = MSSQL;

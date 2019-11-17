@@ -1,6 +1,6 @@
 'use strict';
-const Configurator = require('./configurator');
-const DB = require('./dbs');
+const Configurator = require('../configurator');
+const DB = require('../dbs');
 const Storage = require('./storage');
 const hash = require('object-hash');
 const assert = require('assert');

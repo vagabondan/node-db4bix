@@ -7,6 +7,7 @@ const Sender = require('./zabbixSender');
 const xmlParser = require('fast-xml-parser');
 const he = require('he');
 const escapeStringRegexp = require('escape-string-regexp');
+const md5 = require('md5');
 
 const debug = require('debug')("db4bix:configurator");
 debug('Init');
@@ -27,9 +28,9 @@ Date.prototype.getClockNs = function(){
   return {clock: ~~timestamp, ns: (timestamp % 1).toFixed(3)*1e9}
 };
 
-const addClockNs = function(obj, clockNS){
-  clockNS = clockNS || new Date().getClockNs();
-  Array.isArray(obj) ? obj.push(clockNS.clock, clockNS.ns) : Object.assign(obj, clockNS);
+const addClockNs = function(obj, clockNs){
+  clockNs = clockNs || new Date().getClockNs();
+  Array.isArray(obj) ? obj.push(clockNs.clock, clockNs.ns) : Object.assign(obj, clockNs);
   return obj;
 };
 
@@ -46,7 +47,7 @@ class Configurator {
     let port = 10051;
     let timeout = 5000;
     let proxyName = os.hostname();
-    let version = "3.4.12";
+    let version = "4.2.4";
     const xmlParserOptions = {
       attributeNamePrefix : "",
       attrNodeName: false, //default is 'false'
@@ -74,7 +75,7 @@ class Configurator {
       Object.keys(fileConfig.Zabbix).forEach(serverName => {
         const zabbix = fileConfig.Zabbix[serverName];
         try{
-          zabbixes.push({
+          const zConf = {
             name: serverName,
             //updateConfigPeriod: fileConfig.updateConfigPeriod,
             sendDataPeriod: zabbix.sendDataPeriod || 60,
@@ -86,7 +87,10 @@ class Configurator {
             configSuffix: zabbix.configSuffix || 'DB4bix.config',
             hostname : os.hostname(),
             fileConfig: zabbix,
-          });
+          };
+          // The session token is generated during configuration cache initialization and is not changed later
+          zConf.session = md5(zConf);
+          zabbixes.push(zConf);
         }catch(e){
           console.error("Failed getting fileConfig for server " + serverName + ": " + e.message,e);
         }

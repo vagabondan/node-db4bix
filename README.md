@@ -16,4 +16,4 @@ Configuration syntax in Zabbix stays untouched, but we will extend it too...
 
 Local configuration file is changed drastically and has now ini-format.
 
-Some help of configuration one can read [here](https://github.com/vagabondan/DBforBIX/wiki), but ignore local file configuration instructions, I'll update them a bit later here.
+Some help of configuration one can read [here](https://github.com/vagabondan/DBforBIX/wiki), but ignore local file configuration instructions there. Actual configuration sample is [here](https://github.com/vagabondan/node-db4bix/blob/master/config/db4bix_sample.conf).

@@ -3,4 +3,3 @@ node_modules
 config/db4bix.conf
 config/dbforbix.conf
 logs
-.vscode

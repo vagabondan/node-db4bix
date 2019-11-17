@@ -1,6 +1,6 @@
 {
   "name": "db4bix",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "DB4bix in Node.js: DB monitoring tool for Zabbix",
   "main": "index.js",
   "scripts": {

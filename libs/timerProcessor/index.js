@@ -1,6 +1,6 @@
 'use strict';
-const Configurator = require('./configurator');
-const DB = require('./dbs');
+const Configurator = require('../configurator');
+const DB = require('../dbs');
 const Storage = require('./storage');
 const hash = require('object-hash');
 const assert = require('assert');
@@ -75,7 +75,12 @@ class TimerProcessor{
 
     // add/update
     dbs.forEach(db => {
-      this.registerDB({conf: db});
+      try{
+        this.registerDB({conf: db});
+      }catch(err){
+        console.error("Error while registering DB: " + 
+          JSON.stringify({type: db.type, instance: db.instance, host: db.host, user: db.user}), err);
+      }
     });
   }
 

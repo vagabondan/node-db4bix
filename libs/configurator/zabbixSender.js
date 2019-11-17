@@ -2,8 +2,8 @@
 
 const net = require('net');
 const os  = require('os');
-const defer = require('./utils/defer');
-const drain = require('./utils/drain');
+const defer = require('../utils/defer');
+const drain = require('../utils/drain');
 const fs    = require('fs');
 const ini   = require('ini');
 const assert = require('assert');
@@ -26,24 +26,25 @@ Date.prototype.getClockNs = function(){
   return {clock: ~~timestamp, ns: (timestamp % 1).toFixed(3)*1e9}
 };
 
-const addClockNs = function(obj, clockNS){
-  clockNS = clockNS || new Date().getClockNs();
-  Array.isArray(obj) ? obj.push(clockNS.clock, clockNS.ns) : Object.assign(obj, clockNS);
+const addClockNs = function(obj, clockNs){
+  clockNs = clockNs || new Date().getClockNs();
+  Array.isArray(obj) ? obj.push(clockNs.clock, clockNs.ns) : Object.assign(obj, clockNs);
   return obj;
 };
 
 
 class ZabbixSender {
 
-  constructor({name, host, port, proxyName, timeout, hostname, version}) {
+  constructor({name, host, port, proxyName, timeout, hostname, version, session}) {
     Object.assign(this, {
       name: name || "DefaultZabbixName",
       host: host || 'localhost',
       port: port || 10051,
       proxyName: proxyName || os.hostname(),
       timeout: timeout || 5000,
-      version: version || "3.4.12",
+      version: version || "4.2.4",
       hostname: hostname || os.hostname(),
+      session: session || '61cc43a7f49d7712fd81bdcb53198d13',
     });
   }
 
@@ -92,7 +93,9 @@ class ZabbixSender {
     return this.send(addClockNs({
       request : 'proxy data',
       host: this.proxyName,
-      'history data': historyData
+      'history data': historyData,
+      version: this.version,
+      session: this.session,
     }));
   }
 
@@ -218,7 +221,8 @@ class ZabbixSender {
    */
   async send(data){
     data = ZabbixSender.protocolWrap(data);
-    const timeout = defer();
+    const timeout = defer(new Error("Abort connecting to Zabbix Server: "+
+    this.name+"@"+this.host+":"+this.port+" by timeout set to " + this.timeout + " ms."));
     const i = setTimeout(timeout.reject, this.timeout);
     const client = new net.Socket();
     client.on('error', timeout.reject);
@@ -228,7 +232,14 @@ class ZabbixSender {
       client.write(data);
       let response = await Promise.race([drain(client), timeout]);
       return ZabbixSender.parseResponse(response);
-    }finally {
+    }
+    /*
+    catch(err){
+      console.error(err);
+      throw(err);
+    }
+    */
+    finally {
       clearTimeout(i);
       client.destroy();
     }

@@ -11,7 +11,7 @@ Supports:
 - Oracle
 - MSSQL
 
-We are planning to add MySQL and othr DBs support.
+We are planning to add MySQL and other DBs support.
 You can easily extend list of supported DBs, see ./dbs/db-plugins.
 
 Configuration syntax in Zabbix stays untouched, but we will extend it too...

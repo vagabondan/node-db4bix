@@ -2,13 +2,18 @@
 
 DB moniotoring plugin for Zabbix rewritten in Node.js
 
-Compatible with Zabbix 3.4.12 and higher.
+Compatible with Zabbix 4.2.4 and higher.
 
 It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java.
 
-It will support at least MySQL, Oracle, MSSQL, Postgres... and you can easily extend this list, see ./libs/db-plugins 
+Supports: 
+- Postgres
+- Oracle
+- MSSQL
 
-But now it supports only MSSQL because we need it first.
+We are planning to extend it to MySQL and other DBs...
+
+You can easily extend this list, see ./libs/db-plugins 
 
 Configuration syntax in Zabbix stays untouched, but we will extend it too...
 

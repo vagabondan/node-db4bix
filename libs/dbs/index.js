@@ -14,12 +14,27 @@ function LoadModules(path) {
    */
   const stat = fs.lstatSync(path);
   if (stat.isDirectory()) {
-    // we have a directory: do a tree walk
+    // get directory entries
     const files = fs.readdirSync(path);
-    let f, l = files.length;
-    for (let i = 0; i < l; i++) {
-      f = path_module.join(path, files[i]);
-      LoadModules(f);
+
+    // if directory contains index.js file
+    if( Array.isArray(files) && files.includes('index.js')){
+      // assume directory to be package
+      // we have a file: load it to the module_holder
+      const dbModule = require(path);
+      // alias => DB type
+      const alias = path_module.basename(path);
+      // the key in this dictionary can be whatever you want
+      // just make sure it won't override other modules
+      // TODO implement name conflict resolving!
+      module_holder[alias] = new dbModule();
+    }else{
+      // do a tree walk
+      let f, l = files.length;
+      for (let i = 0; i < l; i++) {
+        f = path_module.join(path, files[i]);
+        LoadModules(f);
+      }
     }
   } else {
     // we have a file: load it to the module_holder
@@ -71,7 +86,7 @@ class DB{
       await msleep(time);
     }
     */
-    return this.connector.query(q);
+    return await this.connector.query(q);
   }
 
   close(){

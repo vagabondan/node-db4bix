@@ -162,7 +162,7 @@ class Configurator {
    * Groups macros by hostid
    * @param hostmacro
    */
-  groupMacrosByHostid({hostmacro}){
+  groupMacrosByHostid({hostmacro}){ // TODO implement Macro substitution from templates if host does not redefine Macro
     const hostmacroidOffset = hostmacro.fields.findIndex(f => f === "hostmacroid");
     const hostidOffset = hostmacro.fields.findIndex(f => f === "hostid");
     const macroOffset = hostmacro.fields.findIndex(f => f === "macro");

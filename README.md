@@ -7,22 +7,14 @@ Compatible with Zabbix 4.2.4 and higher.
 It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java.
 
 Supports:
-<<<<<<< HEAD
-=======
 - MySQL 
->>>>>>> dev
 - Postgres
 - Oracle
 - MSSQL
 
-<<<<<<< HEAD
-We are planning to add MySQL and other DBs support.
-You can easily extend list of supported DBs, see ./dbs/db-plugins.
-=======
 We are planning to extend it to other DBs...
 
 You can easily extend this list, see ./libs/db-plugins 
->>>>>>> dev
 
 Configuration syntax in Zabbix stays untouched, but we will extend it too...
 

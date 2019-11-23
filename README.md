@@ -6,12 +6,13 @@ Compatible with Zabbix 4.2.4 and higher.
 
 It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java.
 
-Supports: 
+Supports:
+- MySQL 
 - Postgres
 - Oracle
 - MSSQL
 
-We are planning to extend it to MySQL and other DBs...
+We are planning to extend it to other DBs...
 
 You can easily extend this list, see ./libs/db-plugins 
 

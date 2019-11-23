@@ -67,6 +67,10 @@ class TimerProcessor{
     });
   }
 
+  /**
+   * Deletes, adds, updates databases entities
+   * @param {dbs} databases list 
+   */
   updateTargets({dbs}){
     //delete
     const newDBNames = dbs.map(db => db.name);
@@ -84,6 +88,12 @@ class TimerProcessor{
     });
   }
 
+  /**
+   * Update monitors list.
+   * Monitor is the entity containing: 
+   * zabbix servers configuration, target db config, execution period, query to execute, timer id (which executes query)
+   * @param {conf} configuration 
+   */
   updateMonitors({conf}){
     const monitors =[];
     for (const zabbix of conf.zabbixes){
@@ -97,7 +107,7 @@ class TimerProcessor{
           if(monitorOld){ // add
             monitors.push(Object.assign(monitorNew, {timerid: monitorOld.timerid}));
           } else{
-            const query = this.query.bind(this, monitorNew);
+            const query = this.query.bind(this, monitorNew);  // partial bound query method with monitor settings
             const timerid = this.createTimer({period, query});
             monitors.push(Object.assign(monitorNew, {timerid}));
           }
@@ -129,6 +139,10 @@ class TimerProcessor{
     return this.createTimer({period, query, firstDelay: period});
   }
 
+  /**
+   * Periodically sends data to Zabbix Server
+   * @param {sendersConf} Array of senders configurations 
+   */
   updateSendData({sendersConf}){
     const senders = [];
     sendersConf.forEach(c => {
@@ -271,6 +285,9 @@ class TimerProcessor{
     }
   }
 
+  /**
+   * Main initialization method: starts periodic update of everything
+   */
   async init(){
     try{
       this.storage = new Storage();
@@ -282,16 +299,24 @@ class TimerProcessor{
     }
   }
 
+  /**
+   * Method explains what it means: update everything.
+   * It is executed periodically.
+   * 
+   * @returns next update period of everything
+   */
   async updatePeriodically(){
     try{
       this.storage = this.storage || new Storage();
       const configurator = new Configurator();
+      // 1. We have to update our configuration
       const conf = await configurator.updateConfiguration();
-
+      // 2. Update databases entities list
       this.updateTargets({dbs: conf.dbs});
-
+      // 3. Update monitors list
       this.updateMonitors({conf});
 
+      // 4. Get senders configurations list and update senders
       const sendersConf = conf.zabbixes.map(z => {
         return {
           zabbixName: z.name,
@@ -300,7 +325,7 @@ class TimerProcessor{
       });
       this.updateSendData({sendersConf});
 
-      // finally update configurator
+      // 5. finally update configurator itself
       this.configurator = configurator;
     }catch(e){
       console.error("Error on updatePeriodically: "+e.message,e);
@@ -350,7 +375,7 @@ class TimerProcessor{
   }
 
   /**
-   *
+   * 
    * @param query
    * @param table
    * @param items
@@ -368,10 +393,22 @@ class TimerProcessor{
         [item[itemidOffset]]: keyValueArray
       });
     }else{        // ordinary query
+      
       // 1. generate key-value array
-      const itemKeys = query.item.split("|"); // can be key1|key2|key3
-      const keyValueArray = TimerProcessor.produceKeyValueArray({keys: itemKeys, table});
-
+      let keyValueArray;
+      if(query.type === "list"){
+        // multiquery of type list contains "items" attribute without prefixes
+        const itemKeys = query.items.split("|"); // can be key1|key2|key3
+        const itemKeysPrefixed = query.item.split("|"); // can be prefix.key1|prefix.key2|prefix.key3
+        keyValueArray = table.reduce((acc, row)=>{
+          const keyIndex = itemKeys.findIndex(key => key === row[0].toString().trim().toLocaleLowerCase());
+          keyIndex >= 0 && acc.push({ [itemKeysPrefixed[keyIndex]] : row[1] });
+          return acc;
+        },[]);
+      }else{ // type = "column"
+        const itemKeys = query.item.split("|"); // can be key1|key2|key3
+        keyValueArray = TimerProcessor.produceKeyValueArray({keys: itemKeys, table});
+      }
       // 2. resolve itemid
       data = keyValueArray.reduce((acc, obj)=>{
           acc = Object.keys(obj).reduce((acc1, key)=>{
@@ -384,6 +421,7 @@ class TimerProcessor{
           return acc;
         }, []
       );
+    
     }
     return data;
   }
@@ -413,6 +451,10 @@ class TimerProcessor{
       .getMonitorConfig().zabbixes.find(z => z.name === zabbixName).zabbixSender
   }
 
+  /**
+   * Main execution function. It is invoked by timers being bound with appropriate configuration
+   * @param {*} param0 
+   */
   async query({zabbixName, dbName, confItemid, hostid, period}){
     try{
       const connector = this.getDBConnector({dbName});

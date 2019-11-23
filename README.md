@@ -14,7 +14,7 @@ Supports:
 
 We are planning to extend it to other DBs...
 
-You can easily extend this list, see ./libs/db-plugins 
+You can easily extend this list, see ./libs/dbs/db-plugins 
 
 Configuration syntax in Zabbix stays untouched, but we will extend it too...
 

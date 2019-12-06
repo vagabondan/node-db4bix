@@ -40,8 +40,17 @@ class Postgres{
    */
   async query(q){
     const client = await this.pool.connect();
-    const result = await client.query(q);
-    client.release();
+    let result={};
+    try{
+      result = await client.query(q);
+    }catch(e){
+      console.error("Exception on query: "+q,e);
+      result.rows = [];
+    }finally{
+      // Issue 2: need to catch exceptions and release connection
+      client.release();
+    }
+    
 
     // we have to flatten all agregations by column names if any
     return result.rows.map(

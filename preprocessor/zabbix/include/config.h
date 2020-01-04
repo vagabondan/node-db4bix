@@ -415,7 +415,7 @@
 #define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/proc.h> header file. */
-#define HAVE_SYS_PROC_H 1
+// #define HAVE_SYS_PROC_H 1
 
 /* Define to 1 if you have the <sys/protosw.h> header file. */
 #define HAVE_SYS_PROTOSW_H 1

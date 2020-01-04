@@ -622,7 +622,7 @@
 /* #undef LIBCURL_PROTOCOL_TFTP */
 
 /* Define to 1 if you are using Mac OS X. */
-#define MAC_OS_X 1
+// #define MAC_OS_X 1
 
 /* Define to 1 if OPENIPMI deprecated functions is used. */
 /* #undef OPENIPMI_DEPRECATED */
@@ -670,9 +670,9 @@
 #define ZBX_SOCKLEN_T socklen_t
 
 /* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
-#endif
+// #ifndef _DARWIN_USE_64_BIT_INODE
+// # define _DARWIN_USE_64_BIT_INODE 1
+// #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */

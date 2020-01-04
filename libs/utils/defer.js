@@ -3,7 +3,7 @@
 module.exports = function(objDefault) {
   let thisresolve;
   let thisreject;
-  const msgReject = "defer.reject";
+  const msgReject = new Error("defer.reject");
 
   var defer = new Promise(function(resolve, reject) {
     thisresolve = resolve;

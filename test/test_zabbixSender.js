@@ -14,6 +14,8 @@ describe("Тестируем zabbixSender",function(){
     configurator = new Configurator();
   });
 
+  /*
+  // TODO redesugn test
   let zabbixConf;
   it("ищет конфигурацию подключения к Zabbix Server",()=>{
     zabbixConf = configurator.zabbixes[0];
@@ -55,7 +57,7 @@ describe("Тестируем zabbixSender",function(){
   });
 
 
-
+*/
 
 
 })

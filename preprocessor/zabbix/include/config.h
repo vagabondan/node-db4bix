@@ -179,10 +179,10 @@
 /* #undef HAVE_LONG_LONG_QU */
 
 /* Define to 1 if you have the <mach/host_info.h> header file. */
-#define HAVE_MACH_HOST_INFO_H 1
+// #define HAVE_MACH_HOST_INFO_H 1
 
 /* Define to 1 if you have the <mach/mach_host.h> header file. */
-#define HAVE_MACH_MACH_HOST_H 1
+// #define HAVE_MACH_MACH_HOST_H 1
 
 /* Define to 1 if you have the <math.h> header file. */
 #define HAVE_MATH_H 1

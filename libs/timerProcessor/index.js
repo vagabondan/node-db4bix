@@ -1,12 +1,16 @@
 'use strict';
+require('../utils/date');
 const Configurator = require('../configurator');
 const DB = require('../dbs');
 const Storage = require('./storage');
+const Cache = require('./cache');
 const hash = require('object-hash');
 const assert = require('assert');
+const ZabbixPreprocessor = require('../zabbixPreprocessor');
 
-const debug = require('debug')("db4bix:mainProcessor");
-debug('Init');
+const debug = require('../utils/debug-vars')('TimerProcessor');
+
+debug.debug('Init');
 
 
 class TimerProcessor{
@@ -18,8 +22,10 @@ class TimerProcessor{
       senders: [],
       configurator: {},
       storage: undefined,
+      preprocCache: undefined,
       dbConnectors: [],
-      updateTimerId: undefined
+      updateTimerId: undefined,
+      zbxPreproc: undefined,
     });
   }
 
@@ -82,7 +88,7 @@ class TimerProcessor{
       try{
         this.registerDB({conf: db});
       }catch(err){
-        console.error("Error while registering DB: " + 
+        debug.error("Error while registering DB: " + 
           JSON.stringify({type: db.type, instance: db.instance, host: db.host, user: db.user}), err);
       }
     });
@@ -241,7 +247,7 @@ class TimerProcessor{
             // if query returns value, then it should be new period
             newPeriod = await query();
           }catch(e){
-            console.error("Exception on query for timer id: "+id+". Message: "+e.message,e);
+            debug.error("Exception on query for timer id: "+id+". Message: "+e.message,e);
           }finally {
             newPeriod = isNaN(newPeriod) ? period : checkPeriod(newPeriod);
             registerTimer(setTimeout(setQuery, newPeriod));                   // reset timer with bound id
@@ -271,31 +277,19 @@ class TimerProcessor{
     dataArray.length = 0;
   }
 
-  async init_backup(){
-    try{
-      this.storage = new Storage();
-      this.configurator = new Configurator();
-      const conf = await this.configurator.updateConfiguration();
-      this.cancelAllTimers();
-      this.prepareToMonitor({conf});
-      this.prepareToSendData({period: conf.zabbixes.reduce((acc, v) => Math.min(acc, v.sendDataPeriod), Infinity)});
-      debug(conf);
-    }catch(e){
-      console.error("Error on init: "+e.message,e);
-    }
-  }
-
   /**
    * Main initialization method: starts periodic update of everything
    */
   async init(){
     try{
       this.storage = new Storage();
+      this.preprocCache = new Cache();
       this.configurator = new Configurator();
       const query = this.updatePeriodically.bind(this);
       this.updateTimerId = this.createTimer({period: this.configurator.getUpdatePeriod(), query, firstDelay: 0.5});
+      this.zbxPreproc = new ZabbixPreprocessor();
     }catch(e){
-      console.error("Error on init: "+e.message,e);
+      debug.error("Error on init: "+e.message,e);
     }
   }
 
@@ -328,7 +322,7 @@ class TimerProcessor{
       // 5. finally update configurator itself
       this.configurator = configurator;
     }catch(e){
-      console.error("Error on updatePeriodically: "+e.message,e);
+      debug.error("Error on updatePeriodically: "+e.message,e);
     }
     return this.configurator.getUpdatePeriod()
   }
@@ -349,9 +343,93 @@ class TimerProcessor{
     );
   }
 
-  postProcessResults({data, sender}){
-    // save data to storage for sending
-    debug("data: "+JSON.stringify(data));
+  getItemPreprocessingSteps({zabbixName, itemid}){
+    const zabbix = this.configurator.zabbixes.find(z => z.name === zabbixName);
+    return zabbix && zabbix.zabbixConfig.item_preproc[itemid];
+  }
+
+
+  /**
+   * 
+   * @param item - is object whith key=itemid, and value=item_value
+   * @param preprocSteps - is array of steps which in turn are arrays of step parameters: 
+   * [type, params, error_handler, error_handler_params, history_value, historyClock, historyNs]
+   */
+  getPreprocessedItem({item, zabbixName}){
+    let [itemid, itemValue, clock, ns, itemValueType] = item;
+    const preprocSteps = this.getItemPreprocessingSteps({zabbixName, itemid});
+    if(!Array.isArray(preprocSteps)){
+      return item;
+    }
+    // cache structure: {itemid,[]}
+    const zbxCache = this.preprocCache.get(zabbixName) || this.preprocCache.add(zabbixName, new Cache());
+    let history = zbxCache.get(itemid);
+    
+    if(!history || history.length !== preprocSteps.length)
+      // if history is empty fill history cache with empty strings: [[historyValue, historyClock, historyNs],[], ...]
+      history = zbxCache.add(itemid, preprocSteps.reduce(acc => (acc.push(["", "", ""]), acc), []));
+
+    let throwMe = undefined;
+    // preprocess step by step
+    itemValue = preprocSteps.reduce(
+      // [item_value, clock, ns, item_value_type, 
+      //    op_type, op_params, op_error_handler, op_error_handler_params, 
+      //    historyValue, historyClock, historyNs]
+      (acc, cur, i) => {
+        let preprocessed = acc;
+        const input = [acc, clock, ns, itemValueType].concat(cur, history[i]);
+        debug.debug("Zabbix["+zabbixName+"]: itemid["+itemid+"]: step["+i+"]: preprocess input:",input);
+        try{
+          preprocessed = this.zbxPreproc.preprocess(input);
+        }catch(e){
+          if(!history[i][0] || !history[i][1] || history[i][1] <= 0)
+            debug.info("Exception while preprocessing Zabbix["+zabbixName+"]: itemid["+itemid+"]: step["+i+"]: input =",input,e);
+          else
+            debug.error("Exception while preprocessing Zabbix["+zabbixName+"]: itemid["+itemid+"]: step["+i+"]: input =",input,e);
+          // we do not throw immediately to be able to initialize the whole chain of history values
+          //throwMe = throwMe || e;
+          // we throw immediately because only one change element (that needs history value) is allowed
+          throw(e);
+        }finally{
+          // history value
+          history[i][0] = acc;
+          // history clock, ns
+          history[i][1] = clock;
+          history[i][2] = ns;              
+        }
+        return preprocessed;
+      },
+      itemValue.toString()
+    );
+
+    // throw it if you have to
+    //if(throwMe) throw(throwMe);
+
+    return [itemid, itemValue, clock, ns, itemValueType];
+  }
+
+  postProcessMonitoingData({monitoringData, sender}){
+    // data before preprocessing
+    debug.debug("data before preprocessing: "+JSON.stringify(monitoringData));
+
+    let data = monitoringData.data;
+    const zabbixName = sender.name;
+
+    // preprocess items
+    // finally data became in format: [itemid, item_value, clock, ns]
+    data = data.reduce((acc, item) => {
+      try{
+        acc.push(this.getPreprocessedItem({item, zabbixName}))
+      }catch(e){
+        debug.info("Zabbix["+zabbixName+"]: itemid["+item[0]+"]: skipped from results because of exception",e);
+      }
+      return acc;
+    }, []);
+
+    // data after preprocessing
+    debug.debug("data after preprocessing: "+JSON.stringify(data));
+
+    // save data to storage for later sending
     this.storage.push({data, sender});
 
   }
@@ -374,6 +452,10 @@ class TimerProcessor{
     );
   }
 
+  static addMonitoringData({arr, itemid, itemValue, itemValueType}){
+    return arr.push([itemid, itemValue, itemValueType]) && arr;
+  }
+
   /**
    * 
    * @param query
@@ -382,16 +464,17 @@ class TimerProcessor{
    * @returns {Array}
    */
   static convertToMonitoringData({query, table, items}){
+    const clockNs = new Date().getClockNs();
     const keyOffset = items.fields.findIndex(f => f === "key_");
     const itemidOffset = items.fields.findIndex(f => f === "itemid");
-    let data = [];
+    const valueTypeOffset = items.fields.findIndex(f => f === "value_type");
+    const result = {data:[], fields:["itemid", "value", "clock", "ns", "value_type"]};
     if(query.names){  // discovery!
       const names = query.names.split("|").map(name => "{#"+name+"}");  // generate user-macro names
       const keyValueArray = TimerProcessor.produceKeyValueArray({keys: names, table});
       const item = items.data.find(item => item[keyOffset] === query.item);
-      item && data.push({
-        [item[itemidOffset]]: keyValueArray
-      });
+      // item && data.push({ [item[itemidOffset]]: keyValueArray });
+      item && result.data.push([ item[itemidOffset], keyValueArray, clockNs.clock, clockNs.ns, item[valueTypeOffset] ]);
     }else{        // ordinary query
       
       // 1. generate key-value array
@@ -410,20 +493,23 @@ class TimerProcessor{
         keyValueArray = TimerProcessor.produceKeyValueArray({keys: itemKeys, table});
       }
       // 2. resolve itemid
-      data = keyValueArray.reduce((acc, obj)=>{
+      result.data = keyValueArray.reduce((acc, obj)=>{
           acc = Object.keys(obj).reduce((acc1, key)=>{
             const item = items.data.find(item => item[keyOffset] === key);
-            item && acc1.push({
-              [item[itemidOffset]]: obj[key]
-            });
+            //item && acc1.push({ [item[itemidOffset]]: obj[key] });
+            item && acc1.push([
+              // [itemid, item_value, clock, ns, item_value_type]
+              item[itemidOffset], obj[key], clockNs.clock, clockNs.ns, item[valueTypeOffset]
+            ]);
             return acc1;
           }, acc);
           return acc;
-        }, []
+        }, 
+        result.data
       );
     
     }
-    return data;
+    return result;
   }
 
   getQueries({period, zabbixName, confItemid}){
@@ -477,17 +563,17 @@ class TimerProcessor{
               confItemid+", "+
               period+", "+
               JSON.stringify(q));
-            const data = TimerProcessor.convertToMonitoringData({query: q, table, items: this.getItems({zabbixName, hostid})});
-            data.length > 0 && this.postProcessResults({data, sender: this.getZabbixSender({zabbixName})});
+            const monitoringData = TimerProcessor.convertToMonitoringData({query: q, table, items: this.getItems({zabbixName, hostid})});
+            monitoringData.data.length > 0 && this.postProcessMonitoingData({monitoringData, sender: this.getZabbixSender({zabbixName})});
           }catch(e){
-            console.warn(e.message);
+            debug.warn(e.message);
           }finally{
             arr[i].status = "done";
           }
         }
       });
     }catch(e){
-      console.error(e.message,e);
+      debug.error(e.message,e);
     }
   }
 
@@ -500,7 +586,7 @@ class TimerProcessor{
   }
 
   cancelAllTimers() {
-    debug("cancelAllTimers started");
+    debug.debug("cancelAllTimers started");
     this.timers.forEach( t => t.timer && clearTimeout(t.timer));
     // clear timer Array
     this.timers.length = 0;

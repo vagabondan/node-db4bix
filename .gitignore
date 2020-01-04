@@ -4,3 +4,4 @@ config/db4bix.conf
 config/dbforbix.conf
 logs
 libs/dbs/db-plugins/oracle/client/instantclient*
+build

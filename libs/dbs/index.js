@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path_module = require('path');
 const assert = require('assert');
-const debug = require('debug')("db4bix:dbs");
-debug('Init');
+const debug = require('../utils/debug-vars')('DBs');
+debug.debug('Init');
 /**
  * module_holder is the object with name:DB_type_instance
  */
@@ -68,18 +68,18 @@ class DB{
       conf,
       connector: module_holder[conf.type]
     });
-    debug(`DB ${this.conf.name} of type ${this.conf.type} has been loaded.`);
+    debug.debug(`DB ${this.conf.name} of type ${this.conf.type} has been loaded.`);
   }
 
   async init(){
     await this.connector.init({conf: this.conf});
-    debug(`DB ${this.conf.name} has been inited.`);
+    debug.debug(`DB ${this.conf.name} has been inited.`);
   }
 
   async query(q){
     /*
     if(q.includes("DISTINCT")){
-      debug("[" + new Date().toISOLocalDateTime() + "]: "+ q);
+      debug.debug("[" + new Date().toISOLocalDateTime() + "]: "+ q);
       await msleep(14000);
     }else{
       const time = Math.random()*45000 +5000;

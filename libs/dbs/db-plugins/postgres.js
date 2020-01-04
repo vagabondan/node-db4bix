@@ -1,6 +1,6 @@
 const {Pool} = require('pg');
-const debug = require('debug')("db4bix:postgres");
-debug('Init');
+const debug = require('../../utils/debug-vars')('PostgreSQL');
+debug.debug('Init');
 
 class Postgres{
 
@@ -24,12 +24,12 @@ class Postgres{
     };
     this.pool = new Pool(conf);
     this.pool.on('error', err => {
-        console.error("Connection error", err);
+        debug.error("Connection error", err);
     });
   }
 
   close(){
-    this.pool.end(()=>debug("Pool has ended."));
+    this.pool.end(()=>debug.debug("Pool has ended."));
     this.pool = undefined;
   }
 
@@ -44,7 +44,7 @@ class Postgres{
     try{
       result = await client.query(q);
     }catch(e){
-      console.error("Exception on query: "+q,e);
+      debug.error("Exception on query: "+q,e);
       result.rows = [];
     }finally{
       // Issue 2: need to catch exceptions and release connection
@@ -61,7 +61,7 @@ class Postgres{
         try{
           return c.trim();
         }catch(e){
-          debug("Error on trimming value "+c+": "+e.message);
+          debug.debug("Error on trimming value "+c+": "+e.message);
           return c;
         }
       })

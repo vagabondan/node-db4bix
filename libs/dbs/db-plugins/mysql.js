@@ -1,8 +1,8 @@
 const mysql = require('mysql');
 const util = require('util');
 const assert = require('assert');
-const debug = require('debug')("db4bix:mysql");
-debug('Init');
+const debug = require('../../utils/debug-vars')('MYSQL');
+debug.debug('Init');
 
 class Mysql{
 
@@ -28,10 +28,10 @@ class Mysql{
     try{
       this.pool = mysql.createPool(this.conf);
     }catch(err){
-      console.error(err);
+      debug.error(err);
       throw(err); 
     }
-    debug("Connection pool started");
+    debug.debug("Connection pool started");
   }
 
   close(){
@@ -41,8 +41,8 @@ class Mysql{
     const conf = this.conf;
     const pool = util.promisify(this.pool.end.bind(this.pool));
     pool.end()
-    .then(() => debug('Pool closed'))
-    .catch(e => console.error("Error while closing connection to Mysql DB "+
+    .then(() => debug.debug('Pool closed'))
+    .catch(e => debug.error("Error while closing connection to Mysql DB "+
       JSON.stringify({name: conf.name, host: conf.host, port: conf.port, database: conf.database}),
       e
     ));
@@ -64,13 +64,13 @@ class Mysql{
       const query = util.promisify(connection.query.bind(connection));
       result = await query(q);
     }catch(err){
-      console.error(`Error executing query ${q} on DB ${this.conf.name}`,err);
+      debug.error(`Error executing query ${q} on DB ${this.conf.name}`,err);
       throw(err);
     }finally{
       try{
         connection.release();
       }catch(err){
-        console.error(`Error releasing connection to DB ${this.conf.name}`,err);
+        debug.error(`Error releasing connection to DB ${this.conf.name}`,err);
       }
     }
 
@@ -83,7 +83,7 @@ class Mysql{
         try{
           return c.trim();
         }catch(e){
-          debug("Error on trimming value "+c+": "+e.message);
+          debug.debug("Error on trimming value "+c+": "+e.message);
           return c;
         }
       })

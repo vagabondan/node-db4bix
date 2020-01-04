@@ -206,7 +206,7 @@
 #define HAVE_NETDB_H 1
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
-#define HAVE_NETINET_IN_H 1
+// #define HAVE_NETINET_IN_H 1
 
 /* Define to 1 if Net-SNMP should be enabled. */
 /* #undef HAVE_NETSNMP */
@@ -215,10 +215,10 @@
 /* #undef HAVE_NETSNMP_SESSION_LOCALNAME */
 
 /* Define to 1 if you have the <net/if.h> header file. */
-#define HAVE_NET_IF_H 1
+// #define HAVE_NET_IF_H 1
 
 /* Define to 1 if you have the <net/if_mib.h> header file. */
-#define HAVE_NET_IF_MIB_H 1
+// #define HAVE_NET_IF_MIB_H 1
 
 /* Define to 1 if you have the <nlist.h> header file. */
 // #define HAVE_NLIST_H 1

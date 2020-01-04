@@ -14,7 +14,7 @@ Date.prototype.getClockNs = function(){
   // console.log(hrTime[0] * 1000000 + hrTime[1] / 1000)
   // return {clock: hrTime[0], ns: hrTime[1]};
   const timestamp = this.getTime()/1000;
-  return {clock: ~~timestamp, ns: (timestamp % 1).toFixed(3)*1e9};
+  return {clock: ~~timestamp, ns: ~~((timestamp % 1).toFixed(3)*1e9)};
 };
 
 module.exports = Date;

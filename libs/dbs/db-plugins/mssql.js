@@ -1,9 +1,9 @@
 const sql = require('mssql');
-const debug = require('debug')("db4bix:mssql");
-debug('Init');
+const debug = require('../../utils/debug-vars')('MSSQL');
+debug.debug('Init');
 
 sql.on('error', err => {
-  console.error("Connection error", err);
+  debug.error("Connection error", err);
 });
 
 
@@ -55,7 +55,7 @@ class MSSQL{
         try{
           return c.trim();
         }catch(e){
-          debug("Error on trimming value "+c+": "+e.message);
+          debug.debug("Error on trimming value "+c+": "+e.message);
           return c;
         }
       })

@@ -1,5 +1,6 @@
 "use strict";
 
+require('../utils/date');
 const net = require('net');
 const os  = require('os');
 const defer = require('../utils/defer');
@@ -8,10 +9,14 @@ const fs    = require('fs');
 const ini   = require('ini');
 const assert = require('assert');
 
+const debug = require('../utils/debug-vars')('ZabbixSender');
+debug.debug('Init');
+
 const ZBXD_HEADER  = Buffer.from('ZBXD\x01');
 const ZBX_HEADER_LENGTH = ZBXD_HEADER.length + 8; // 8 bytes - size of "length field" in header
 const ITEM_STATE_NOTSUPPORTED = 1;
 
+/*
 Date.prototype.addHours = function(h) {
   this.setTime(this.getTime() + (h*60*60*1000));
   return this;
@@ -25,10 +30,13 @@ Date.prototype.getClockNs = function(){
   const timestamp = this.getTime()/1000;
   return {clock: ~~timestamp, ns: (timestamp % 1).toFixed(3)*1e9}
 };
+*/
 
 const addClockNs = function(obj, clockNs){
+  debug.debug("addClockNs(",obj,clockNs,")");
   clockNs = clockNs || new Date().getClockNs();
   Array.isArray(obj) ? obj.push(clockNs.clock, clockNs.ns) : Object.assign(obj, clockNs);
+  debug.debug("addClockNs: resulting obj=",obj);
   return obj;
 };
 
@@ -128,8 +136,8 @@ class ZabbixSender {
           assert.ok(!isNaN(parseInt(item[0],10)),"itemid placeholder (idx=0) doesn't look like number in array: "
             + JSON.stringify(item));
           if (item.length >= 4) { // only [itemid, value, clock, ns <, ignored>] format is supported
-            isNaN(parseInt(item[2], 10)) || console.warn("clock placeholder (idx=2) doesn't look like number in array: " + JSON.stringify(item));
-            isNaN(parseInt(item[3], 10)) || console.warn("ns placeholder (idx=3) doesn't look like number in array: " + JSON.stringify(item));
+            isNaN(parseInt(item[2], 10)) && console.warn("clock placeholder (idx=2) doesn't look like number in array: " + JSON.stringify(item));
+            isNaN(parseInt(item[3], 10)) && console.warn("ns placeholder (idx=3) doesn't look like number in array: " + JSON.stringify(item));
             list.push(ZabbixSender.getHistoryObject( item[0], item[1],
               isNaN(parseInt(item[2], 10)) ? clockNs.clock : item[2],
               isNaN(parseInt(item[3], 10)) ? clockNs.ns : item[3]

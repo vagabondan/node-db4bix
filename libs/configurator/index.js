@@ -1,4 +1,5 @@
 "use strict";
+require('../utils/date');
 const os  = require('os');
 const fs    = require('fs');
 const ini   = require('ini');
@@ -9,11 +10,11 @@ const he = require('he');
 const escapeStringRegexp = require('escape-string-regexp');
 const md5 = require('md5');
 
-const debug = require('debug')("db4bix:configurator");
-debug('Init');
+const debug = require('../utils/debug-vars')('Configurator');
+debug.debug('Init');
 
 const zabbix_conf_path = './config/db4bix.conf';
-
+/*
 Date.prototype.addHours = function(h) {
   this.setTime(this.getTime() + (h*60*60*1000));
   return this;
@@ -27,7 +28,7 @@ Date.prototype.getClockNs = function(){
   const timestamp = this.getTime()/1000;
   return {clock: ~~timestamp, ns: (timestamp % 1).toFixed(3)*1e9}
 };
-
+*/
 const addClockNs = function(obj, clockNs){
   clockNs = clockNs || new Date().getClockNs();
   Array.isArray(obj) ? obj.push(clockNs.clock, clockNs.ns) : Object.assign(obj, clockNs);
@@ -92,7 +93,7 @@ class Configurator {
           zConf.session = md5(zConf);
           zabbixes.push(zConf);
         }catch(e){
-          console.error("Failed getting fileConfig for server " + serverName + ": " + e.message,e);
+          debug.error("Failed getting fileConfig for server " + serverName + ": " + e.message,e);
         }
       });
 
@@ -211,7 +212,7 @@ class Configurator {
           if(macro){
             str = str.replace(m, macro.value, "gm");
           }else{
-            console.warn("Couldn't find macro "+m+" in macros library! Leave it unsubstituted.");
+            debug.warn("Couldn't find macro "+m+" in macros library! Leave it unsubstituted.");
           }
         });
       }
@@ -271,11 +272,31 @@ class Configurator {
     const zbxConfigs = await this.getConfigsFromZabbix();
     const zabbixes = this.zabbixes;
     for (let i=0; i < zbxConfigs.length; ++i) { // for each Zabbix Server
-      let {hosts, hostmacro, items} = zbxConfigs[i];
+      let {hosts, hostmacro, items, item_preproc} = zbxConfigs[i];
+      // filter out useful fields
       items = Configurator.getUsefulFields({fields: ["itemid", "type", "hostid", "key_", "status", "value_type", "params"], source: items});
       hosts = Configurator.getUsefulFields({fields: ["hostid", "host", "status", "name"], source: hosts});
+      
+      /**
+       * Prepare preprocessing structure:
+       * item_preproc[itemid] = [
+       *  [type1, params1, error_handler1, error_handler_params1],[..2..],[..3..],...
+       * ] <-- array of preprocessing steps
+       *  */       
+      item_preproc = item_preproc.data.reduce(
+        (acc, current)=> {
+          const itemid = current[1];
+          if(!Array.isArray(acc[itemid])){
+            acc[itemid]=[];
+          }
+          acc[itemid].push(current.slice(3));
+          return acc;
+        },
+        {fields: item_preproc.fields.slice(3)}
+      );
+
       zabbixes[i].zabbixConfig = {
-        hosts, items, hostmacro
+        hosts, items, hostmacro, item_preproc
       };
     }
 
@@ -319,7 +340,7 @@ class Configurator {
               timers: Configurator.groupParamsByTime({params: this.parseXMLConfig({xml: item[paramsOffset]})})
             })
           }catch(e){
-            console.warn(e.message,e);
+            debug.warn(e.message,e);
           }
           return acc;
         }

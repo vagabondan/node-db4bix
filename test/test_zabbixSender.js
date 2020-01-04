@@ -1,6 +1,6 @@
 'use strict';
 const Configurator = require('../libs/configurator');
-const Sender = require('../libs/zabbixSender');
+const Sender = require('../libs/configurator/zabbixSender');
 const chai = require('chai')
   , expect = chai.expect
   , should = chai.should();

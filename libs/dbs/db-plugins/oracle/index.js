@@ -1,7 +1,7 @@
 const oracledb = require('oracledb');
 const assert = require('assert');
-const debug = require('debug')("db4bix:oracle");
-debug('Init');
+const debug = require('../../../utils/debug-vars')('ORACLE');
+debug.debug('Init');
 
 class Oracle{
 
@@ -34,10 +34,10 @@ class Oracle{
     try{
       this.pool = await oracledb.createPool(this.conf);
     }catch(err){
-      console.error(err);
+      debug.error(err);
       throw(err); 
     }
-    debug("Connection pool started");
+    debug.debug("Connection pool started");
   }
 
   close(){
@@ -46,8 +46,8 @@ class Oracle{
     // If this hangs, you may need DISABLE_OOB=ON in a sqlnet.ora file
     const conf = this.conf;
     this.pool.close(10)
-    .then(() => debug('Pool closed'))
-    .catch(e => console.error("Error while closing connection to Oracle DB "+
+    .then(() => debug.debug('Pool closed'))
+    .catch(e => debug.error("Error while closing connection to Oracle DB "+
       JSON.stringify({connectString: conf.connectString}),
       e
     ));
@@ -67,13 +67,13 @@ class Oracle{
       client = await this.pool.getConnection();
       result = await client.execute(q, {}, { outFormat: oracledb.OUT_FORMAT_OBJECT });
     }catch(err){
-      console.error(`Error executing query ${q} on DB ${this.conf.name}`,err);
+      debug.error(`Error executing query ${q} on DB ${this.conf.name}`,err);
       throw(err);
     }finally{
       try{
         await client.close();
       }catch(err){
-        console.error(`Error releasing connection to DB ${this.conf.name}`,err);
+        debug.error(`Error releasing connection to DB ${this.conf.name}`,err);
       }
     }
 
@@ -86,7 +86,7 @@ class Oracle{
         try{
           return c.trim();
         }catch(e){
-          debug("Error on trimming value "+c+": "+e.message);
+          debug.debug("Error on trimming value "+c+": "+e.message);
           return c;
         }
       })

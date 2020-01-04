@@ -1,8 +1,9 @@
 {
   "name": "db4bix",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "DB4bix in Node.js: DB monitoring tool for Zabbix",
   "main": "index.js",
+  "gypfile": true,
   "scripts": {
     "test": "mocha"
   },
@@ -22,6 +23,7 @@
   "author": "Vagabondan",
   "license": "MIT",
   "dependencies": {
+    "bindings": "^1.5.0",
     "debug": "^4.1.1",
     "escape-string-regexp": "^2.0.0",
     "fast-xml-parser": "^3.12.16",
@@ -30,6 +32,7 @@
     "md5": "^2.2.1",
     "mssql": "^5.1.0",
     "mysql": "^2.17.1",
+    "node-addon-api": "^2.0.0",
     "object-hash": "^1.3.1",
     "oracledb": "^4.0.1",
     "pg": "^7.12.1"

@@ -10,7 +10,10 @@ Compatible with Zabbix 4.2.4 and higher.
 
 It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java.
 
-Supports:
+Features:
+- Zabbix Preprocessing support!
+
+DB support:
 
 - MySQL
 - Postgres

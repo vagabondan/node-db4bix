@@ -221,7 +221,7 @@
 #define HAVE_NET_IF_MIB_H 1
 
 /* Define to 1 if you have the <nlist.h> header file. */
-#define HAVE_NLIST_H 1
+// #define HAVE_NLIST_H 1
 
 /* Define to 1 if OPENIPMI should be enabled. */
 /* #undef HAVE_OPENIPMI */

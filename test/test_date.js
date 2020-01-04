@@ -17,6 +17,6 @@ describe("Тестируем модуль utils/date.js",function(){
         const result = new Date().getClockNs();
         //expect(result).to.have.all.keys('clock', 'ns'); 
         expect(result).to.have.property('clock').match(/\d{10}/);
-        expect(result).to.have.property('ns').match(/\d{9}/);
+        expect(result).to.have.property('ns').match(/\d{1,9}/);
     });
 })

@@ -1,3 +1,5 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vagabondan/node-db4bix/Node%20CI?style=plastic)
+
 # node-db4bix
 
 DB moniotoring plugin for Zabbix rewritten in Node.js

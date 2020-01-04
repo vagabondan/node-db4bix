@@ -215,7 +215,7 @@
 /* #undef HAVE_NETSNMP_SESSION_LOCALNAME */
 
 /* Define to 1 if you have the <net/if.h> header file. */
-// #define HAVE_NET_IF_H 1
+#define HAVE_NET_IF_H 1
 
 /* Define to 1 if you have the <net/if_mib.h> header file. */
 // #define HAVE_NET_IF_MIB_H 1

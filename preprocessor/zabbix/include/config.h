@@ -388,7 +388,7 @@
 #define HAVE_SYSLOG_H 1
 
 /* Define to 1 if you have the <sys/disk.h> header file. */
-#define HAVE_SYS_DISK_H 1
+// #define HAVE_SYS_DISK_H 1
 
 /* Define to 1 if you have the <sys/dkstat.h> header file. */
 // #define HAVE_SYS_DKSTAT_H 1
@@ -397,10 +397,10 @@
 /* #undef HAVE_SYS_DK_H */
 
 /* Define to 1 if you have the <sys/file.h> header file. */
-#define HAVE_SYS_FILE_H 1
+// #define HAVE_SYS_FILE_H 1
 
 /* Define to 1 if you have the <sys/ipc.h> header file. */
-#define HAVE_SYS_IPC_H 1
+// #define HAVE_SYS_IPC_H 1
 
 /* Define to 1 if you have the <sys/loadavg.h> header file. */
 /* #undef HAVE_SYS_LOADAVG_H */
@@ -409,34 +409,34 @@
 /* #undef HAVE_SYS_MNTTAB_H */
 
 /* Define to 1 if you have the <sys/mount.h> header file. */
-#define HAVE_SYS_MOUNT_H 1
+// #define HAVE_SYS_MOUNT_H 1
 
 /* Define to 1 if you have the <sys/param.h> header file. */
-#define HAVE_SYS_PARAM_H 1
+// #define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/proc.h> header file. */
 // #define HAVE_SYS_PROC_H 1
 
 /* Define to 1 if you have the <sys/protosw.h> header file. */
-#define HAVE_SYS_PROTOSW_H 1
+// #define HAVE_SYS_PROTOSW_H 1
 
 /* Define to 1 if you have the <sys/pstat.h> header file. */
 /* #undef HAVE_SYS_PSTAT_H */
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
-#define HAVE_SYS_RESOURCE_H 1
+// #define HAVE_SYS_RESOURCE_H 1
 
 /* Define to 1 if you have the <sys/sched.h> header file. */
 /* #undef HAVE_SYS_SCHED_H */
 
 /* Define to 1 if you have the <sys/sem.h> header file. */
-#define HAVE_SYS_SEM_H 1
+// #define HAVE_SYS_SEM_H 1
 
 /* Define to 1 if you have the <sys/shm.h> header file. */
-#define HAVE_SYS_SHM_H 1
+// #define HAVE_SYS_SHM_H 1
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
-#define HAVE_SYS_SOCKET_H 1
+// #define HAVE_SYS_SOCKET_H 1
 
 /* Define to 1 if struct 'statfs64' exists. */
 /* #undef HAVE_SYS_STATFS64 */
@@ -448,10 +448,10 @@
 /* #undef HAVE_SYS_STATVFS64 */
 
 /* Define to 1 if you have the <sys/statvfs.h> header file. */
-#define HAVE_SYS_STATVFS_H 1
+// #define HAVE_SYS_STATVFS_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-#define HAVE_SYS_STAT_H 1
+// #define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/swap.h> header file. */
 /* #undef HAVE_SYS_SWAP_H */
@@ -460,10 +460,10 @@
 /* #undef HAVE_SYS_SWAP_SWAPTABLE */
 
 /* Define to 1 if you have the <sys/syscall.h> header file. */
-#define HAVE_SYS_SYSCALL_H 1
+// #define HAVE_SYS_SYSCALL_H 1
 
 /* Define to 1 if you have the <sys/sysctl.h> header file. */
-#define HAVE_SYS_SYSCTL_H 1
+// #define HAVE_SYS_SYSCTL_H 1
 
 /* Define to 1 if you have the <sys/sysinfo.h> header file. */
 /* #undef HAVE_SYS_SYSINFO_H */
@@ -475,25 +475,25 @@
 /* #undef HAVE_SYS_SYSTEMCFG_H */
 
 /* Define to 1 if you have the <sys/times.h> header file. */
-#define HAVE_SYS_TIMES_H 1
+// #define HAVE_SYS_TIMES_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-#define HAVE_SYS_TIME_H 1
+// #define HAVE_SYS_TIME_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
+// #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/ucontext.h> header file. */
-#define HAVE_SYS_UCONTEXT_H 1
+// #define HAVE_SYS_UCONTEXT_H 1
 
 /* Define to 1 if you have the <sys/un.h> header file. */
-#define HAVE_SYS_UN_H 1
+// #define HAVE_SYS_UN_H 1
 
 /* Define to 1 if you have the <sys/user.h> header file. */
-#define HAVE_SYS_USER_H 1
+// #define HAVE_SYS_USER_H 1
 
 /* Define to 1 if you have the <sys/utsname.h> header file. */
-#define HAVE_SYS_UTSNAME_H 1
+// #define HAVE_SYS_UTSNAME_H 1
 
 /* Define to 1 if you have the <sys/var.h> header file. */
 /* #undef HAVE_SYS_VAR_H */
@@ -502,10 +502,10 @@
 /* #undef HAVE_SYS_VFS_H */
 
 /* Define to 1 if you have the <sys/vmmeter.h> header file. */
-#define HAVE_SYS_VMMETER_H 1
+// #define HAVE_SYS_VMMETER_H 1
 
 /* Define to 1 if you have the <sys/wait.h> header file. */
-#define HAVE_SYS_WAIT_H 1
+// #define HAVE_SYS_WAIT_H 1
 
 /* Define to 1 if compiler keyword '__thread' supported. */
 #define HAVE_THREAD_LOCAL 1

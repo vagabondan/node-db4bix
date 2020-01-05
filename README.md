@@ -3,6 +3,10 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vagabondan/node-db4bix/Node%20CI?style=plastic)
 ![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/vagabondan/db4bix?style=plastic)
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/vagabondan/db4bix?style=plastic)
+![GitHub language count](https://img.shields.io/github/languages/count/vagabondan/node-db4bix)
+![GitHub repo size](https://img.shields.io/github/repo-size/vagabondan/node-db4bix)
+![GitHub](https://img.shields.io/github/license/vagabondan/node-db4bix)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/vagabondan/node-db4bix)
 
 DB moniotoring plugin for Zabbix rewritten in Node.js
 

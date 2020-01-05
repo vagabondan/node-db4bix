@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:lts
 
 # Создать директорию app
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 # работает с npm@5+
 COPY . ./
 
-RUN npm install
+RUN npm install --unsafe-perm
 # Используется при сборке кода в продакшене
 # RUN npm install --only=production
 

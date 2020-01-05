@@ -31,6 +31,18 @@ Local configuration file is changed drastically and has now ini-format.
 
 Some help of configuration one can read [here](https://github.com/vagabondan/DBforBIX/wiki), but ignore local file configuration instructions, I'll update them a bit later here.
 
+## Documentation
+
+- [node-db4bix](#node-db4bix)
+  - [Documentation](#documentation)
+  - [Installation and run](#installation-and-run)
+    - [With Node.js](#with-nodejs)
+    - [With docker-compose](#with-docker-compose)
+    - [With docker](#with-docker)
+    - [How to read logs with docker-compose](#how-to-read-logs-with-docker-compose)
+    - [How to read logs with docker](#how-to-read-logs-with-docker)
+    - [Choose log verbosity](#choose-log-verbosity)
+
 ## Installation and run
 
 ### With Node.js
@@ -46,7 +58,7 @@ Some help of configuration one can read [here](https://github.com/vagabondan/DBf
    or with full debug messages:
    >     DEBUG='*' node index.js
 
-## With docker-compose
+### With docker-compose
 
 1. Create or download simple [*docker-compose.yml*](https://github.com/vagabondan/node-db4bix/blob/64e62da009d3b2b09f2ca9fbbaee183974f9da2a/docker-compose.yml) directly:
    >     wget https://github.com/vagabondan/node-db4bix/blob/64e62da009d3b2b09f2ca9fbbaee183974f9da2a/docker-compose.yml
@@ -59,7 +71,7 @@ Some help of configuration one can read [here](https://github.com/vagabondan/DBf
 
 You can choose appropriate debug level under *environment* section in docker-compose.yml by setting DEBUG variable. By default, it is set to *info* level.
 
-## With docker
+### With docker
 
 1. Create appropriate *db4bix.conf* configuration file inside */path/to/config* directory, [see config file example](https://github.com/vagabondan/node-db4bix/blob/64e62da009d3b2b09f2ca9fbbaee183974f9da2a/config/db4bix_sample.conf):
    >     vi /path/to/config/db4bix.conf
@@ -68,12 +80,12 @@ You can choose appropriate debug level under *environment* section in docker-com
    or with full DEBUG messages:
    >     docker run -d -v /path/to/config:/app/config -e 'DEBUG=*' vagabondan/db4bix
 
-## How to read logs with docker-compose
+### How to read logs with docker-compose
 
 Read logs with command (from directory with *docker-compose.yaml* file):
    >     docker-compose logs -f db4bix
 
-## How to read logs with docker
+### How to read logs with docker
 
 Do it with container id:
    >     docker logs -f <container_id>
@@ -83,7 +95,7 @@ Do it with container id:
    >     fd4c14dba6f6        vagabondan/db4bix   "docker-entrypoint.s…"   5 seconds ago       Up 3 seconds                                 silly_mclean
    where the first hexademical identifier *fd4c14dba6f6* is the container id.
 
-## Choose log verbosity
+### Choose log verbosity
 
 Log verbosity is managed with variable DEBUG.
 It is set differently depending of what type of *db4bix* run you have chosen:

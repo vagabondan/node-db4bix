@@ -68,8 +68,8 @@ You can easily extend this list, see ./libs/dbs/db-plugins
 
 ### With docker-compose
 
-1. Create or download simple [*docker-compose.yml*](https://github.com/vagabondan/node-db4bix/blob/64e62da009d3b2b09f2ca9fbbaee183974f9da2a/docker-compose.yml) directly:
-   >     wget https://github.com/vagabondan/node-db4bix/blob/64e62da009d3b2b09f2ca9fbbaee183974f9da2a/docker-compose.yml
+1. Create or download simple [*docker-compose.yml*](https://raw.githubusercontent.com/vagabondan/node-db4bix/master/docker-compose.yml) directly:
+   >     wget https://raw.githubusercontent.com/vagabondan/node-db4bix/master/docker-compose.yml
    or just clone the whole repo and go inside created folder:
    >     git clone https://github.com/vagabondan/node-db4bix.git && cd node-db4bix
 2. Create appropriate *db4bix.conf* configuration file inside *./config* subdirectory, [see example](https://github.com/vagabondan/node-db4bix/blob/64e62da009d3b2b09f2ca9fbbaee183974f9da2a/config/db4bix_sample.conf):

@@ -8,7 +8,7 @@
 ![GitHub](https://img.shields.io/github/license/vagabondan/node-db4bix)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/vagabondan/node-db4bix)
 
-DB moniotoring plugin for Zabbix rewritten in Node.js
+DB monitoring plugin for Zabbix rewritten in Node.js
 
 Compatible with Zabbix 4.2.4 and higher.
 

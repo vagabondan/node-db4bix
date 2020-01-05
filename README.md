@@ -1,14 +1,14 @@
+# node-db4bix
+
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/vagabondan/node-db4bix/Node%20CI?style=plastic)
 ![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/vagabondan/db4bix?style=plastic)
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/vagabondan/db4bix?style=plastic)
-
-# node-db4bix
 
 DB moniotoring plugin for Zabbix rewritten in Node.js
 
 Compatible with Zabbix 4.2.4 and higher.
 
-It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java.
+It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java earlier.
 
 Features:
 
@@ -23,7 +23,7 @@ DB support:
 
 We are planning to extend it to other DBs...
 
-You can easily extend this list, see ./libs/dbs/db-plugins 
+You can easily extend this list, see ./libs/dbs/db-plugins
 
 Configuration syntax in Zabbix stays untouched, but we will extend it too...
 
@@ -95,6 +95,7 @@ It is set differently depending of what type of *db4bix* run you have chosen:
    >     docker run -d -v /path/to/config:/app/config -e 'DEBUG=*' vagabondan/db4bix
 
 Below are some examples of DEBUG variable with short explanations:
+
 1. Show *all* messages from *all* modules (not only db4bix):
    >     DEBUG='*'
 2. Show *debug* messages from only *db4bix* modules:
@@ -105,5 +106,3 @@ Below are some examples of DEBUG variable with short explanations:
    >     DEBUG='db4bix:ZabbixSender:*'
 5. Show only *info* messages from *ZabbixSender* module of *db4bix*:
    >     DEBUG='db4bix:ZabbixSender:info'
-
-   

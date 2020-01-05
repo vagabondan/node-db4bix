@@ -8,13 +8,11 @@
 ![GitHub](https://img.shields.io/github/license/vagabondan/node-db4bix)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/vagabondan/node-db4bix)
 
-DB moniotoring plugin for Zabbix rewritten in Node.js
-
-Compatible with Zabbix 4.2.4 and higher.
+Nodejs-rewritten DB moniotoring plugin for [Zabbix](https://www.zabbix.com/).
 
 It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java earlier.
 
-Features:
+## Features
 
 - Configuration is through ***Zabbix Web Interface***
 - ***Zabbix Preprocessing*** support!
@@ -22,8 +20,9 @@ Features:
 - ***Connection pooling*** control: no reconnection DDoS from monitoring
 - ***Several Zabbix Server instances*** support at a time
 - ***Zabbix templates*** for every supported DB type
+- Compatible with ***Zabbix 4.2.4++***
 
-DB types supported for now:
+## Supported DB types
 
 - MySQL
 - PostgreSQL
@@ -34,15 +33,11 @@ We are planning to extend it to other DBs...
 
 You can easily extend this list, see ./libs/dbs/db-plugins
 
-Configuration syntax in Zabbix stays untouched, but we will extend it too...
-
-Local configuration file is changed drastically and has now ini-format.
-
-Some help of configuration one can read [here](https://github.com/vagabondan/DBforBIX/wiki), but ignore local file configuration instructions, I'll update them a bit later here.
-
 ## Documentation
 
 - [node-db4bix](#node-db4bix)
+  - [Features](#features)
+  - [Supported DB types](#supported-db-types)
   - [Documentation](#documentation)
   - [Installation and run](#installation-and-run)
     - [With Node.js](#with-nodejs)
@@ -147,27 +142,48 @@ We use *ini*-file format and syntax inside db4bix.conf which is described in det
 
 Configuration file keeps the following parameters listed in the table below:
 
-<table style='position: relative'>
-<thead style='position: sticky; top: -1px;background: red'>
-<tr style='position: sticky; top: -1px;background: red'>
-<th style='position:sticky;top:0;'>Section</th>
-<th style='position:sticky;top:0;'>Parameter</th>
-<th align="center" style='position:sticky;top:0;'>Example</th>
-<th style='position:sticky;top:0;'>Description</th>
+<table >
+<thead >
+<tr >
+<th >Section</th>
+<th >Parameter</th>
+<th align="center" >Example</th>
+<th>Description</th>
 </tr>
 </thead>
+
+
+
+
 <tbody>
+
 <tr>
-<td rowspan="2">Global</td>
+<td rowspan="4">Global</td>
 <td><em>updateConfigPeriod</em></td>
 <td align="center">updateConfigPeriod=30</td>
-<td>time interval between consequent updating configuration from Zabbix Servers, in seconds</td>
+<td>Time interval in seconds between consequent updating configuration from Zabbix Servers.</td>
 </tr>
+
 <tr>
 <td>[<em>Zabbix</em>.Name]</td>
 <td align="center">[Zabbix.Prod]<br> [Zabbix.Test]<br> [Zabbix.Srv01]</td>
 <td>Section name for Zabbix server instance connection parameters. You can specify any number of different Zabbix Servers and they will be served by DB4bix independently and simultaneously.</td>
 </tr>
+
+<tr>
+<td>[<em>DB</em>.Name]</td>
+<td align="center">[DB.BillingProd]<br> [DB.PGTest]<br> [DB.CMDB]</td>
+<td>Section name for Database instance connection parameters. You can specify any number of different databases.</td>
+</tr>
+
+<tr>
+<td>[<em>Pool</em>.Name]</td>
+<td align="center">[Pool.Common]<br> [Pool.OldDBs]<br> [Pool.TestDBs]</td>
+<td>Section name for DB connection Pool configuration parameters. You can specify any number of different Pools. Pool names are then referenced in DB sections in <em>pool</em> parameters. Pools manage network connections from DB4bix to DB instances.</td>
+</tr>
+
+
+
 <tr>
 <td colspan="4" align="center">[<strong>Zabbix</strong>.<em>Name</em>] section</td>
 </tr>
@@ -217,38 +233,103 @@ Configuration file keeps the following parameters listed in the table below:
 <td><em>dbs[]</em></td>
 <td align="center">dbs[] = DB01 <br> dbs[] = DB02 <br> dbs[] = DB03 <br> etc</td>
 
-<td>List of databases alowed to monitor with current Zabbix Server instance. Syntax expect to add to list one DB per row, so you might have to define several rows with <em>dbs[]</em> indide one Zabbix Server section</td>
+<td>List of databases names allowed to monitor with current Zabbix Server instance. Syntax expects user to add to list one DB per row, so you might have to define several rows with <em>dbs[]</em> inside one Zabbix Server section</td>
 </tr>
+
+
+
+
+<td colspan="4" align="center">[<strong>DB</strong>.<em>Name</em>] section</td>
+</tr>
+
+<tr>
+<td rowspan="8">[DB.<em>Name</em>]</td>
+<td><em>type</em></td>
+<td align="center">type=mssql<br>type=postgres<br>type=oracle<br>type=mysql</td>
+<td>Defines which client driver will be used to establish connections to DB instance. There are slight differences in parameters for different DB types.</td>
+</tr>
+
+<tr>
+<td><em>instance</em></td>
+<td align="center">instance=BillingDB</td>
+<td>DB instance name or SID for Oracle DB type. You should know that information from database administrators.</td>
+</tr>
+
+<tr>
+<td><em>host</em></td>
+<td align="center">host=billingdb.yourdomain<br>host=172.16.15.5</td>
+<td>FQDN or IP address of a host of your DBMS.</td>
+</tr>
+
+<tr>
+<td><em>port</em></td>
+<td align="center">port=5432</td>
+<td>Port for connection establish with your DBMS. If null or empty, default will be used for this type of DB.</td>
+</tr>
+
+<tr>
+<td><em>user</em></td>
+<td align="center">user=thom</td>
+<td>Username/schemaname for your DB.</td>
+</tr>
+
+<tr>
+<td><em>password</em></td>
+<td align="center">password=your.supersecret.password</td>
+<td>Password for user for your DB. Yes, keep open passwords in plain text is not very good idea. We will be glad to see more reasonable proposals or even PRs ;-)</td>
+</tr>
+
+<tr>
+<td><em>pool</em></td>
+<td align="center">pool=Common</td>
+<td>Pool name which settings will be used to manage network connections from Db4bix to current DB.</td>
+</tr>
+
+<tr>
+<td><em>connectString</em></td>
+<td align="center">connectString=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=mymachine.example.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=orcl)))</td>
+<td>[ORACLE only]: Connection string used to connect to Oracle DBs. Possible formats are described [here](https://oracle.github.io/node-oracledb/doc/api.html#-142-connection-strings)</td>
+</tr>
+
+
+
+<td colspan="4" align="center">[<strong>Pool</strong>.<em>Name</em>] section</td>
+</tr>
+
+<tr>
+<td rowspan="8">[Pool.<em>Name</em>]</td>
+<td><em>max</em></td>
+<td align="center">max=10</td>
+<td>Maximum number of concurrent connections that DB4bix can establish to each DB referencing this Pool.</td>
+</tr>
+
+<tr>
+<td><em>min</em></td>
+<td align="center">min=0</td>
+<td>Minimum number of concurrent connections that DB4bix will keep open even if no activity with DB is planning.</td>
+</tr>
+
+<tr>
+<td><em>idleTimeoutMillis</em></td>
+<td align="center">idleTimeoutMillis=30000</td>
+<td>Timeout in millisecconds after which DB4bix starts to terminate unused connections. Specific behaviour is defined by DB client library.</td>
+</tr>
+
+<tr>
+<td><em>connectionTimeoutMillis</em></td>
+<td align="center">connectionTimeoutMillis=30000</td>
+<td>Timeout in millisecconds after which DB4bix reports unsuccessful connection attempt to DB. Specific behaviour is defined by DB client library.</td>
+</tr>
+
+<tr>
+<td><em>keepAliveSec</em></td>
+<td align="center">keepAliveSec=60</td>
+<td>Period in seconds for sending keepalive request from DB4bix to DB. Some databases requires keepalive checks from clients.</td>
+</tr>
+
 </tbody>
 </table>
 
-<table>
-    <thead>
-        <tr>
-            <th>Layer 1</th>
-            <th>Layer 2</th>
-            <th>Layer 3</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td rowspan=4>L1 Name</td>
-            <td rowspan=2>L2 Name A</td>
-            <td>L3 Name A</td>
-        </tr>
-        <tr>
-            <td>L3 Name B</td>
-        </tr>
-        <tr>
-            <td rowspan=2>L2 Name B</td>
-            <td>L3 Name C</td>
-        </tr>
-        <tr>
-            <td>L3 Name D</td>
-        </tr>
-    </tbody>
-</table>
-
-
 ### Zabbix Server configuration items
 
+Some help of configuration one can read [here](https://github.com/vagabondan/DBforBIX/wiki), but ignore local file configuration instructions, I'll update them a bit later in this readme.

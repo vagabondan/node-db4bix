@@ -16,12 +16,17 @@ It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBfo
 
 Features:
 
+- Configuration is through ***Zabbix Web Interface***
 - ***Zabbix Preprocessing*** support!
+- ***Whole table of items with only one SELECT***: your databases remain in rest
+- ***Connection pooling*** control: no reconnection DDoS from monitoring
+- ***Several Zabbix Server instances*** support at a time
+- ***Zabbix templates*** for every supported DB type
 
-DB support:
+DB types supported for now:
 
 - MySQL
-- Postgres
+- PostgreSQL
 - Oracle
 - MSSQL
 
@@ -142,19 +147,107 @@ We use *ini*-file format and syntax inside db4bix.conf which is described in det
 
 Configuration file keeps the following parameters listed in the table below:
 
-| Parameter | Example | Section | Description |
-| --- | :---: | --- | --- |
-| ***updateConfigPeriod*** | updateConfigPeriod=30 | Global | time interval between consequent updating configuration from Zabbix Servers, in seconds |
-| [***Zabbix***.*Name*] | [***Zabbix***.*Prod*]<br> [***Zabbix***.*Test*]<br> [***Zabbix***.*Srv01*] | Global | Section name for Zabbix server instance connection parameters. You can specify any number of different Zabbix Servers and they will be served by DB4bix independently and simultaneously. |
-| ***host*** | ***host***=*zbxsrv01.yourdomain*<br>***host***=*192.168.2.1* | [***Zabbix***.*Name*] | FQDN or IP address of Zabbix server instance, described in current Zabbix section |
-| ***port*** | ***port***=10051 | [***Zabbix***.*Name*] | Zabbix Server port |
-| ***proxyName*** | ***proxyName***=*DB4bix.01* | [***Zabbix***.*Name*] | Name of Zabbix Proxy that should be defined at current Zabbix Server instance to allow DB4bix communicate with Zabbix Server. Proxy mode should be set to ***Active***. |
-| ***timeoutMillis*** | ***timeoutMillis***=*10000* | [***Zabbix***.*Name*] | Network timeout for Db4bix to wait response from Zabbix Server |
-| ***sendDataPeriod*** | ***sendDataPeriod***=*61* | [***Zabbix***.*Name*] | Time interval between consequent data sending actions to Zabbix Server. DB4bix keeps metrics from databases in local buffer and send bulk requests to Zabbix Server trappers with frequency configured with this parameter. |
-| ***configSuffix*** | ***configSuffix***=*DB4bix.config* | [***Zabbix***.*Name*] | Zabbix Server item keys suffix where users expect to define DB4bix configuration on Zabbix Server Frontend side. This configuration should define SQL selects with some metadata for DB4bix to understand where it should put the resuts. See below section [Zabbix Server configuration items](#zabbix-server-configuration-items) for details.|
-| ***version*** | ***version***=*4.2.4* | [***Zabbix***.*Name*] | Zabbix Server version for DB4bix to choose the right Zabbix internal protocol to communicate with Zabbix Server. For now only 4.2.4 and higher versions are supported. We haven't tested it with lower versions yet. |
-| ***dbs[]*** | ***dbs[]*** = *DB01* <br> ***dbs[]*** = *DB02* <br> ***dbs[]*** = *DB03* <br> etc | [***Zabbix***.*Name*] | List of databases alowed to monitor with current Zabbix Server instance. Syntax expect to add to list one DB per row, so you might have to define several rows with ***dbs[]*** indide one Zabbix Server section |
+<table style='position: relative'>
+<thead style='position: sticky; top: -1px;background: red'>
+<tr style='position: sticky; top: -1px;background: red'>
+<th style='position:sticky;top:0;'>Section</th>
+<th style='position:sticky;top:0;'>Parameter</th>
+<th align="center" style='position:sticky;top:0;'>Example</th>
+<th style='position:sticky;top:0;'>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="2">Global</td>
+<td><em>updateConfigPeriod</em></td>
+<td align="center">updateConfigPeriod=30</td>
+<td>time interval between consequent updating configuration from Zabbix Servers, in seconds</td>
+</tr>
+<tr>
+<td>[<em>Zabbix</em>.Name]</td>
+<td align="center">[Zabbix.Prod]<br> [Zabbix.Test]<br> [Zabbix.Srv01]</td>
+<td>Section name for Zabbix server instance connection parameters. You can specify any number of different Zabbix Servers and they will be served by DB4bix independently and simultaneously.</td>
+</tr>
+<tr>
+<td colspan="4" align="center">[<strong>Zabbix</strong>.<em>Name</em>] section</td>
+</tr>
+<tr>
+<td rowspan="8">[Zabbix.<em>Name</em>]</td>
+<td><em>host</em></td>
+<td align="center">host=zbxsrv01.yourdomain<br>host=192.168.2.1</td>
+<td>FQDN or IP address of Zabbix server instance, described in current Zabbix section</td>
+</tr>
+<tr>
+<td><em>port</em></td>
+<td align="center">port=10051</td>
 
+<td>Zabbix Server port</td>
+</tr>
+<tr>
+<td><em>proxyName</em></td>
+<td align="center">proxyName=DB4bix.01</td>
+
+<td>Name of Zabbix Proxy that should be defined at current Zabbix Server instance to allow DB4bix communicate with Zabbix Server. Proxy mode should be set to <em><strong>Active</strong></em>.</td>
+</tr>
+<tr>
+<td><em>timeoutMillis</em></td>
+<td align="center">timeoutMillis=10000</td>
+
+<td>Network timeout for Db4bix to wait response from Zabbix Server</td>
+</tr>
+<tr>
+<td><em>sendDataPeriod</em></td>
+<td align="center">sendDataPeriod=61</td>
+
+<td>Time interval between consequent data sending actions to Zabbix Server. DB4bix keeps metrics from databases in local buffer and send bulk requests to Zabbix Server trappers with frequency configured with this parameter.</td>
+</tr>
+<tr>
+<td><em>configSuffix</em></td>
+<td align="center">configSuffix=DB4bix.config</td>
+
+<td>Zabbix Server item keys suffix where users expect to define DB4bix configuration on Zabbix Server Frontend side. This configuration should define SQL selects with some metadata for DB4bix to understand where it should put the resuts. See below section <a href="#zabbix-server-configuration-items">Zabbix Server configuration items</a> for details.</td>
+</tr>
+<tr>
+<td><em>version</em></td>
+<td align="center">version=4.2.4</td>
+
+<td>Zabbix Server version for DB4bix to choose the right Zabbix internal protocol to communicate with Zabbix Server. For now only 4.2.4 and higher versions are supported. We haven't tested it with lower versions yet.</td>
+</tr>
+<tr>
+<td><em>dbs[]</em></td>
+<td align="center">dbs[] = DB01 <br> dbs[] = DB02 <br> dbs[] = DB03 <br> etc</td>
+
+<td>List of databases alowed to monitor with current Zabbix Server instance. Syntax expect to add to list one DB per row, so you might have to define several rows with <em>dbs[]</em> indide one Zabbix Server section</td>
+</tr>
+</tbody>
+</table>
+
+<table>
+    <thead>
+        <tr>
+            <th>Layer 1</th>
+            <th>Layer 2</th>
+            <th>Layer 3</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan=4>L1 Name</td>
+            <td rowspan=2>L2 Name A</td>
+            <td>L3 Name A</td>
+        </tr>
+        <tr>
+            <td>L3 Name B</td>
+        </tr>
+        <tr>
+            <td rowspan=2>L2 Name B</td>
+            <td>L3 Name C</td>
+        </tr>
+        <tr>
+            <td>L3 Name D</td>
+        </tr>
+    </tbody>
+</table>
 
 
 ### Zabbix Server configuration items

@@ -8,7 +8,13 @@
 ![GitHub](https://img.shields.io/github/license/vagabondan/node-db4bix)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/vagabondan/node-db4bix)
 
+<<<<<<< HEAD
 Nodejs-rewritten DB moniotoring plugin for [Zabbix](https://www.zabbix.com/).
+=======
+DB monitoring plugin for Zabbix rewritten in Node.js
+
+Compatible with Zabbix 4.2.4 and higher.
+>>>>>>> 6bd26692175aba359b60d4884ca149a56050fd60
 
 It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBforBIX) and [DBforBIX by Vagabondan](https://github.com/vagabondan/DBforBIX) that were written in Java earlier.
 

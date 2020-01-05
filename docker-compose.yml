@@ -1,7 +1,7 @@
 version: "3.1"
 services:
   db4bix:
-    image: vagabondan:db4bix
+    image: vagabondan/db4bix
     restart: unless-stopped
     environment:
       - "DEBUG=db4bix:*:info"

@@ -131,7 +131,7 @@ Below are some examples of DEBUG variable with short explanations:
 
 ## Configuration
 
-DB4bix configuration is divided on two main parts described below:
+DB4bix configuration is divided in two main parts described below:
 
 1. [Configuration file: db4bix.conf](#configuration-file-db4bixconf)
 2. [Zabbix Server configuration items](#zabbix-server-configuration-items)

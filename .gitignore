@@ -7,3 +7,4 @@ libs/dbs/db-plugins/oracle/client/instantclient*
 build
 *~
 .github
+*.code-workspace

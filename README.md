@@ -20,6 +20,7 @@ It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBfo
 - ***Connection pooling*** control: no reconnection DDoS from monitoring
 - ***Several Zabbix Server instances*** support at a time
 - ***Zabbix templates*** for every supported DB type
+- Resolves ***Zabbix Host/Templates macros*** (i.e. {$DSN}, {$ANY_OTHER_STUFF}, etc.)
 - Compatible with ***Zabbix 4.2.4++***
 
 ## Supported DB types
@@ -50,6 +51,8 @@ You can easily extend this list, see ./libs/dbs/db-plugins
   - [Configuration](#configuration)
     - [Configuration file db4bix.conf](#configuration-file-db4bixconf)
     - [Zabbix Server configuration items](#zabbix-server-configuration-items)
+      - [XML syntax of Zabbix configuration items](#xml-syntax-of-zabbix-configuration-items)
+  - [How it works alltogether](#how-it-works-alltogether)
 
 ## Installation and run
 
@@ -332,4 +335,52 @@ Configuration file keeps the following parameters listed in the table below:
 
 ### Zabbix Server configuration items
 
-Some help of configuration one can read [here](https://github.com/vagabondan/DBforBIX/wiki), but ignore local file configuration instructions, I'll update them a bit later in this readme.
+Being connected to Zabbix Server DB4bix requests all configuration for its Zabbix Proxy name (it performs this action periodically according to parameter *updateConfigPeriod* defined at *Global* section of local DB4bix config file).
+It scans enabled hosts items for item keys ending with *DB4bix.config* (or what you have defined in *configSuffix* parameter under Zabbix section in local db4bix config file). You can specify any other config suffix in local DB4bix config at will, but important is to keep in mind that this suffix should uniquely identify items where DB4bix will search its configuration.
+
+This Zabbix item keys (we will name it *configuration item key*) should also have 2 parameters and look like this:
+>     .*DB4bix.config[someid,DBName]
+where
+*someid* - some your identifier (whatever you want),
+*DBName* - DB name which should be present in local configuration file in *dbs[]* parameter under Zabbix section. It also may be a macro (we often use {$DSN} macro in our templates), then its value should be defined in host or template macros. Db4bix will resolve it prior to look for corresponding DB name at local config file.
+
+Configuration items, i.e. those having item keys with .*DB4bix.config  suffix should be of type **Database monitor** and contain DB4bix-like XML configuration in ***SQL query field***, e.g.:
+
+1. MySQL example where simple request returns result to single item key *mysql.DB4bix.config[version,MySQL01]*:
+  >     <parms type="mysql" prefix="mysql.">
+  >       <server>
+  >         <query time="600" item="DB4bix.config[version,MySQL01]">SHOW VARIABLES LIKE "version"</query>
+  >       </server>
+  >     </parms>
+2. Another example for Oracle DB of ***Zabbix discovery*** item with item key:
+  >     oracle.discovery.DB4bix.config[instanceid,{$DSN]
+It returns several results in one bulk request and has Zabbix host macro {$DSN} which value is defined at host macros with DB name of one of the databases defined at local DB4bix config file:
+  >     <parms type="oracle" prefix="oracle.">
+  >     <server>
+  >     <discovery time="120" item="discovery.DB4bix.config[instanceid,{$DSN}]" names="INST_ID">select inst_id from gv$instance</discovery>
+  >     <query time="60" item="stats[%1,%2]">SELECT inst_id, REPLACE(name,' ','_'), value FROM gv$sysstat WHERE name IN ('user I/O wait time','physical read total bytes','physical write total bytes','lob reads','lob writes','db block changes','db block gets','consistent gets','physical reads')</query>
+  >     </server>
+  >     </parms>
+3. Many other examples you can find at Zabbix templates provided with this repo in *./templates* subdirectory.
+
+You can place in SQL field of DBforBix config item full XML config with root element - parms. You can make it as complex as you wish. DB4bix creates as many async code flows as needed to serve all config items and avoid mutual influence of different config items.
+
+Final step you should do is to create *items-receivers of data*. We recommend to use type *trappers* for them but this is not necessary.
+
+For second example above you should create item prototypes with keys, e.g.:
+>     oracle.stats[{#INST_ID},user_I/O_wait_time] 
+>     oracle.stats[{#INST_ID}physical_read_total_bytes] 
+>     ...
+>     oracle.stats[{#INST_ID},physical_write_requests_optimized]
+
+#### XML syntax of Zabbix configuration items
+
+**TBD**: describe elements, its attributes and element types in XML syntax of DB4bix
+
+## How it works alltogether
+
+Local file config (*db4bix.conf*) defines which Zabbix Servers DB4bix may connect to. Also it defines how DB4bix may connect to databases which it can monitor.
+DB4bix connects to Zabbix Server like an ordinary Zabbix Proxy. 
+Of course for it may be possible, corresponding Zabbix Proxy name should be defined at Zabbix Server and DB4bix should know this name too. This is the reason why you have to define *proxyName* parameter inside [*Zabbix*.Name] section of *db4bix.conf*.
+
+**TBD**

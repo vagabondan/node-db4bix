@@ -20,7 +20,7 @@ It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBfo
 - ***Connection pooling*** control: no reconnection DDoS from monitoring
 - ***Several Zabbix Server instances*** support at a time
 - ***Zabbix templates*** for every supported DB type
-- Resolves ***Zabbix Host/Templates macros*** (i.e. {$DSN}, {$ANY_OTHER_STUFF}, etc.)
+- Resolves ***Zabbix Host/Templates macros*** (i.e. ``{$DSN}, {$ANY_OTHER_STUFF}``, etc.)
 - Compatible with ***Zabbix 4.2.4++***
 
 ## Supported DB types
@@ -163,25 +163,25 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="4">Global</td>
 <td><em>updateConfigPeriod</em></td>
-<td align="center">updateConfigPeriod=30</td>
+<td align="center"><pre>updateConfigPeriod=30</pre></td>
 <td>Time interval in seconds between consequent updating configuration from Zabbix Servers.</td>
 </tr>
 
 <tr>
 <td>[<em>Zabbix</em>.Name]</td>
-<td align="center">[Zabbix.Prod]<br> [Zabbix.Test]<br> [Zabbix.Srv01]</td>
+<td align="center"><pre>[Zabbix.Prod]<br> [Zabbix.Test]<br> [Zabbix.Srv01]</pre></td>
 <td>Section name for Zabbix server instance connection parameters. You can specify any number of different Zabbix Servers and they will be served by DB4bix independently and simultaneously.</td>
 </tr>
 
 <tr>
 <td>[<em>DB</em>.Name]</td>
-<td align="center">[DB.BillingProd]<br> [DB.PGTest]<br> [DB.CMDB]</td>
+<td align="center"><pre>[DB.BillingProd]<br> [DB.PGTest]<br> [DB.CMDB]</pre></td>
 <td>Section name for Database instance connection parameters. You can specify any number of different databases.</td>
 </tr>
 
 <tr>
 <td>[<em>Pool</em>.Name]</td>
-<td align="center">[Pool.Common]<br> [Pool.OldDBs]<br> [Pool.TestDBs]</td>
+<td align="center"><pre>[Pool.Common]<br> [Pool.OldDBs]<br> [Pool.TestDBs]</pre></td>
 <td>Section name for DB connection Pool configuration parameters. You can specify any number of different Pools. Pool names are then referenced in DB sections in <em>pool</em> parameters. Pools manage network connections from DB4bix to DB instances.</td>
 </tr>
 
@@ -193,48 +193,48 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="8">[Zabbix.<em>Name</em>]</td>
 <td><em>host</em></td>
-<td align="center">host=zbxsrv01.yourdomain<br>host=192.168.2.1</td>
+<td align="center"><pre>host=zbxsrv01.yourdomain<br>host=192.168.2.1</pre></td>
 <td>FQDN or IP address of Zabbix server instance, described in current Zabbix section</td>
 </tr>
 <tr>
 <td><em>port</em></td>
-<td align="center">port=10051</td>
+<td align="center"><pre>port=10051</pre></td>
 
 <td>Zabbix Server port</td>
 </tr>
 <tr>
 <td><em>proxyName</em></td>
-<td align="center">proxyName=DB4bix.01</td>
+<td align="center"><pre>proxyName=DB4bix.01</pre></td>
 
 <td>Name of Zabbix Proxy that should be defined at current Zabbix Server instance to allow DB4bix communicate with Zabbix Server. Proxy mode should be set to <em><strong>Active</strong></em>.</td>
 </tr>
 <tr>
 <td><em>timeoutMillis</em></td>
-<td align="center">timeoutMillis=10000</td>
+<td align="center"><pre>timeoutMillis=10000</pre></td>
 
 <td>Network timeout for Db4bix to wait response from Zabbix Server</td>
 </tr>
 <tr>
 <td><em>sendDataPeriod</em></td>
-<td align="center">sendDataPeriod=61</td>
+<td align="center"><pre>sendDataPeriod=61</pre></td>
 
 <td>Time interval between consequent data sending actions to Zabbix Server. DB4bix keeps metrics from databases in local buffer and send bulk requests to Zabbix Server trappers with frequency configured with this parameter.</td>
 </tr>
 <tr>
 <td><em>configSuffix</em></td>
-<td align="center">configSuffix=DB4bix.config</td>
+<td align="center"><pre>configSuffix=DB4bix.config</pre></td>
 
 <td>Zabbix Server item keys suffix where users expect to define DB4bix configuration on Zabbix Server Frontend side. This configuration should define SQL selects with some metadata for DB4bix to understand where it should put the resuts. See below section <a href="#zabbix-server-configuration-items">Zabbix Server configuration items</a> for details.</td>
 </tr>
 <tr>
 <td><em>version</em></td>
-<td align="center">version=4.2.4</td>
+<td align="center"><pre>version=4.2.4</pre></td>
 
 <td>Zabbix Server version for DB4bix to choose the right Zabbix internal protocol to communicate with Zabbix Server. For now only 4.2.4 and higher versions are supported. We haven't tested it with lower versions yet.</td>
 </tr>
 <tr>
 <td><em>dbs[]</em></td>
-<td align="center">dbs[] = DB01 <br> dbs[] = DB02 <br> dbs[] = DB03 <br> etc</td>
+<td align="center"><pre>dbs[] = DB01 <br>dbs[] = DB02 <br>dbs[] = DB03 <br>etc</pre></td>
 
 <td>List of databases names allowed to monitor with current Zabbix Server instance. Syntax expects user to add to list one DB per row, so you might have to define several rows with <em>dbs[]</em> inside one Zabbix Server section</td>
 </tr>
@@ -248,50 +248,50 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="8">[DB.<em>Name</em>]</td>
 <td><em>type</em></td>
-<td align="center">type=mssql<br>type=postgres<br>type=oracle<br>type=mysql</td>
+<td align="center"><pre>type=mssql<br>type=postgres<br>type=oracle<br>type=mysql</pre></td>
 <td>Defines which client driver will be used to establish connections to DB instance. There are slight differences in parameters for different DB types.</td>
 </tr>
 
 <tr>
 <td><em>instance</em></td>
-<td align="center">instance=BillingDB</td>
+<td align="center"><pre>instance=BillingDB</pre></td>
 <td>DB instance name or SID for Oracle DB type. You should know that information from database administrators.</td>
 </tr>
 
 <tr>
 <td><em>host</em></td>
-<td align="center">host=billingdb.yourdomain<br>host=172.16.15.5</td>
+<td align="center"><pre>host=billingdb.yourdomain<br>host=172.16.15.5</pre></td>
 <td>FQDN or IP address of a host of your DBMS.</td>
 </tr>
 
 <tr>
 <td><em>port</em></td>
-<td align="center">port=5432</td>
+<td align="center"><pre>port=5432</pre></td>
 <td>Port for connection establish with your DBMS. If null or empty, default will be used for this type of DB.</td>
 </tr>
 
 <tr>
 <td><em>user</em></td>
-<td align="center">user=thom</td>
+<td align="center"><pre>user=thom</pre></td>
 <td>Username/schemaname for your DB.</td>
 </tr>
 
 <tr>
 <td><em>password</em></td>
-<td align="center">password=your.supersecret.password</td>
+<td align="center"><pre>password=your.supersecret.password</pre></td>
 <td>Password for user for your DB. Yes, keep open passwords in plain text is not very good idea. We will be glad to see more reasonable proposals or even PRs ;-)</td>
 </tr>
 
 <tr>
 <td><em>pool</em></td>
-<td align="center">pool=Common</td>
+<td align="center"><pre>pool=Common</pre></td>
 <td>Pool name which settings will be used to manage network connections from Db4bix to current DB.</td>
 </tr>
 
 <tr>
 <td><em>connectString</em></td>
-<td align="center">connectString=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=mymachine.example.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=orcl)))</td>
-<td>[ORACLE only]: Connection string used to connect to Oracle DBs. Possible formats are described [here](https://oracle.github.io/node-oracledb/doc/api.html#-142-connection-strings)</td>
+<td align="center"><pre>connectString=<br>(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)<br>(HOST=mymachine.example.com)(PORT=1521))<br>(CONNECT_DATA=(SERVER=DEDICATED)<br>(SERVICE_NAME=orcl)))</pre></td>
+<td>[ORACLE only]: Connection string used to connect to Oracle DBs. Possible formats are described <a href="https://oracle.github.io/node-oracledb/doc/api.html#-142-connection-strings">here</a>.</td>
 </tr>
 
 
@@ -302,31 +302,31 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="8">[Pool.<em>Name</em>]</td>
 <td><em>max</em></td>
-<td align="center">max=10</td>
+<td align="center"><pre>max=10</pre></td>
 <td>Maximum number of concurrent connections that DB4bix can establish to each DB referencing this Pool.</td>
 </tr>
 
 <tr>
 <td><em>min</em></td>
-<td align="center">min=0</td>
+<td align="center"><pre>min=0</pre></td>
 <td>Minimum number of concurrent connections that DB4bix will keep open even if no activity with DB is planning.</td>
 </tr>
 
 <tr>
 <td><em>idleTimeoutMillis</em></td>
-<td align="center">idleTimeoutMillis=30000</td>
+<td align="center"><pre>idleTimeoutMillis=30000</pre></td>
 <td>Timeout in millisecconds after which DB4bix starts to terminate unused connections. Specific behaviour is defined by DB client library.</td>
 </tr>
 
 <tr>
 <td><em>connectionTimeoutMillis</em></td>
-<td align="center">connectionTimeoutMillis=30000</td>
+<td align="center"><pre>connectionTimeoutMillis=30000</pre></td>
 <td>Timeout in millisecconds after which DB4bix reports unsuccessful connection attempt to DB. Specific behaviour is defined by DB client library.</td>
 </tr>
 
 <tr>
 <td><em>keepAliveSec</em></td>
-<td align="center">keepAliveSec=60</td>
+<td align="center"><pre>keepAliveSec=60</pre></td>
 <td>Period in seconds for sending keepalive request from DB4bix to DB. Some databases requires keepalive checks from clients.</td>
 </tr>
 
@@ -375,7 +375,150 @@ For second example above you should create item prototypes with keys, e.g.:
 
 #### XML syntax of Zabbix configuration items
 
-**TBD**: describe elements, its attributes and element types in XML syntax of DB4bix
+Two examples of XML syntax you've already seen [earlier](#xml-syntax-of-zabbix-configuration-items).
+Below is the table with all possible elements and attributes of XML configuration items.
+
+<table style='table-layout:auto;width:100%;'>
+<thead >
+<tr >
+<th >Element</th>
+<th >Attribute</th>
+<th align="center">Examples</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td rowspan="2"><em>parms</em></td>
+<td><em>type</em></td>
+<td align="center" rowspan="2">
+<pre>
+&lt;parms type="mysql" prefix="mysql."&gt;...&lt;/parms&gt;
+&lt;parms prefix="mysql."&gt;...&lt;/parms&gt;
+&lt;parms prefix="oracle."&gt;...&lt;/parms&gt;
+&lt;parms prefix="whateveryouwant."&gt;...&lt;/parms&gt;
+&lt;parms prefix=""&gt;...&lt;/parms&gt;
+</pre>
+</td>
+<td>(Deprecated) Used in previous versions of DB4bix. Left for backward compatibility only and can be omitted.</td>
+</tr>
+
+<tr>
+<td><em>prefix</em></td>
+<td>You can define prefix which will be used as prefix for item keys where Db4bix will return results to. Or you can leave it empty as in last example.</td>
+</tr>
+
+<tr>
+<td><em>server</em></td>
+<td><em>type</em></td>
+<td align="center">
+<pre>
+&lt;parms prefix=""&gt;
+<strong>&lt;server&gt;</strong>
+...
+<strong>&lt;/server&gt;</strong>
+&lt;/parms&gt;
+</pre>
+</td>
+<td>Used in previous versions of DB4bix. Left for backward compatibility only. Should be present.</td>
+</tr>
+
+<tr>
+<td rowspan="4"><em>query</em><br>
+or<br>
+<em>multiquery</em>
+</td>
+<td><em>time</em></td>
+<td align="left" rowspan="4">
+<pre>
+&lt;parms prefix="mysql."&gt;&lt;server&gt;<br>
+
+<strong>&lt;query time="60" item="</strong>one<strong>"&gt;</strong><br>select 1<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;multiquery time="60" item="</strong>anotherone<strong>"&gt;</strong><br>select 1<br><strong>&lt;/multiquery&gt;</strong>
+
+<strong>&lt;query time="120" item="</strong>oneorzero<strong>" nodata="0"&gt;</strong><br>select 1<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" item="</strong>one|two|three<strong>"&gt;</strong><br>select 1, 2, 3<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" item="</strong>sameone|sametwo|samethree<strong>" type="column"&gt;</strong><br>select 1, 2, 3<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" items="</strong>var1|var2<strong>" type="list"&gt;</strong><br>show variables<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" items="</strong>variable[<strong>%1</strong>]<strong>" type="column"&gt;</strong><br>show variables<br><strong>&lt;/query&gt;</strong>
+
+<strong>
+&lt;query time="60" item="</strong>somekey[<strong>%1,%2</strong>]<strong>"&gt;</strong><br>SELECT inst_id, REPLACE(name,' ','_'), value <br>FROM stat_table <br>WHERE name IN ('user I/O wait time',<br>'physical read total bytes','physical write total bytes',<br>'consistent gets','physical reads')<br><strong>&lt;/query&gt;
+</strong>
+
+&lt;/server&gt;&lt;/parms&gt;
+</pre>
+</td>
+<td>Time interval in seconds between consequent requests to DB with this query.</td>
+</tr>
+
+<tr>
+<td><em>item</em><br>or<br><em>items</em></td>
+<td>
+<em>item</em> or <em>items</em> - are absolutely identical synonyms of attribute that holds Zabbix Item key or list of item keys separated with "|" (vertical line) where DB4bix should return results to.
+Final Zabbix item key will be constructed using <em>prefix</em> attribute value from <em>parms</em> element. So for attribute <em>item</em> with value <em>"one|two|three"</em> DB4bix will be looking for Zabbix items with keys <em>mysql.one, mysql.two and mysql.three</em> to return values to them. The mentioned above item keys should be presented on the <strong>same Zabbix Host where current configuration item resides</strong>.
+<br>There is some extention to this syntax: one can use placeholders (%1, %2, %3, ...) to construct item keys from data returned by query, e.g.
+item="somekey[%1,%2]" - means that DB4bix should construct item keys getting values from first column for <em>%1</em> placeholder and from second column for <em>%2</em> placeholder from query resut and use last column as the value for this item keys.
+If a query returns multiple rows then DB4bix constructs item keys by substituting placeholders per each row and as many times as many rows returned by the query.
+<br>Most efficient queries come up when one combines placeholders and list syntax, e.g.
+item="somekey1[%1,%2]|somekey2[%1,%2]|somekey3[%1,%2]|somekey4[%1,%2]" - this means that query may return any number of rows with 2 (placeholders) + 4 (values for 4 keys) = 7 columns per each row. Suppose query returns 100 rows, so one can get values for 4 (keys) * 100 (rows) = <strong>400 (items) with only one request to database!</strong> The whole tables are inserted to Zabbix per single query to database!
+</td>
+</tr>
+
+<tr>
+<td><em>type</em></td>
+<td><em>column</em> (default)  or <em>list</em> - parse type of returning results when several item values from returned from single query/multiquery.<br>
+Type <em>column</em> means that item values are returned in columns and they will be matched to their keys from the last column to the first column, i.e. last column corresponds to the last item key in <em>item</em> attribute, previous column corresponds to the previous item key and so on. If the number of columns is less than the number of item keys, the remaining item keys are ignored and vice versa.
+Type <em>list</em> means, that query returns multiple rows with two columns where the first column corresponds to the key and the second column corresponds to the value, i.e. query returns <em>list</em> of key-value pairs. So <em>query</em> element in this case behaves like filter: only keys that matches to item keys in <em>item</em> attribute will be returned.</td>
+</tr>
+
+<tr>
+<td><em>nodata</em></td>
+<td>(Optional) What DB4bix should return if no data will be returned by query.</td>
+</tr>
+
+<tr>
+<td rowspan="3"><em>discovery</em>
+</td>
+<td><em>names</em></td>
+<td align="left" rowspan="3">
+<pre>
+&lt;parms prefix="oracle."&gt;&lt;server&gt;
+<strong>
+&lt;discovery <br>time="</strong>120<strong>" <br>item="</strong>discovery.<strong>DB4bix.config[</strong>instanceid<strong>,{$DSN}]" <br>names="INST_ID"&gt;</strong><br>select inst_id from gv$instance<br><strong>&lt;/discovery&gt;</strong><br>
+&lt;query time="60" item="stats[%1,%2]"&gt;<br>SELECT inst_id, REPLACE(name,' ','_'), value <br>FROM gv$sysstat <br>WHERE name IN ('user I/O wait time','physical read total bytes',<br>'physical write total bytes','lob reads','lob writes',<br>'db block changes','db block gets','consistent gets',<br>'physical reads')<br>&lt;/query&gt;<br>
+&lt;/server&gt;&lt;/parms&gt;
+</pre>
+</td>
+<td>
+Discovery elements behaves almost same as query but with major difference: it should return to Zabbix Server JSON LLD (Low Level Discovery) structure. This structure contains information about all possibles values of so called [Zabbix LLD Macros](https://www.zabbix.com/documentation/4.4/manual/config/macros/lld_macros). DB4bix constructs this structures for you, but you should identify list of such LLD Macros in attribute <em>names</em>.
+You can use "|" (vertical line) symbol to construct list of LLD macros but remember that <strong>the number of columns returned by the query should correspond to the number of LLD macros</strong>. Number of rows is not limited but each row should contain unique combination of macros values or Zabbix will report "duplication" error to you.
+Another constraint: LLD macros names should be in upper case and may contain only letters and underscore symbols.<br>
+Please note, <strong>it is very convenient to use discovery items as configuration items for DB4bix!</strong> Do not forget to choose Zabbix item type as "Database monitor", because only this type contains "params" field in its userform, where you can type and edit DB4bix configuration.
+</td>
+</tr>
+
+<tr>
+<td><em>item</em></td>
+<td>Should contain item key for discovery item. As you can see from example you are allowed to use [Zabbix User Macros](https://www.zabbix.com/documentation/4.4/manual/config/macros/usermacros) in item keys. They will be substituted by DB4bix prior to return values to Zabbix.</td>
+</tr>
+
+<tr>
+<td><em>time</em></td>
+<td>Same as for <em>query</em> elements, see above.</td>
+</tr>
+
+</tbody>
+</table>
+
+
 
 ## How it works alltogether
 

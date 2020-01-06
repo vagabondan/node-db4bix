@@ -291,7 +291,7 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td><em>connectString</em></td>
 <td align="center">connectString=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=mymachine.example.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=orcl)))</td>
-<td>[ORACLE only]: Connection string used to connect to Oracle DBs. Possible formats are described [here](https://oracle.github.io/node-oracledb/doc/api.html#-142-connection-strings)</td>
+<td>[ORACLE only]: Connection string used to connect to Oracle DBs. Possible formats are described <a href="https://oracle.github.io/node-oracledb/doc/api.html#-142-connection-strings">here</a>.</td>
 </tr>
 
 

@@ -20,7 +20,7 @@ It is evolution of [DBforBIX by SmartMarmot](https://github.com/smartmarmot/DBfo
 - ***Connection pooling*** control: no reconnection DDoS from monitoring
 - ***Several Zabbix Server instances*** support at a time
 - ***Zabbix templates*** for every supported DB type
-- Resolves ***Zabbix Host/Templates macros*** (i.e. {$DSN}, {$ANY_OTHER_STUFF}, etc.)
+- Resolves ***Zabbix Host/Templates macros*** (i.e. ``{$DSN}, {$ANY_OTHER_STUFF}``, etc.)
 - Compatible with ***Zabbix 4.2.4++***
 
 ## Supported DB types
@@ -375,7 +375,150 @@ For second example above you should create item prototypes with keys, e.g.:
 
 #### XML syntax of Zabbix configuration items
 
-**TBD**: describe elements, its attributes and element types in XML syntax of DB4bix
+Two examples of XML syntax you've already seen [earlier](#xml-syntax-of-zabbix-configuration-items).
+Below is the table with all possible elements and attributes of XML configuration items.
+
+<table style='table-layout:auto;width:100%;'>
+<thead >
+<tr >
+<th >Element</th>
+<th >Attribute</th>
+<th align="center">Examples</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+<td rowspan="2"><em>parms</em></td>
+<td><em>type</em></td>
+<td align="center" rowspan="2">
+<pre>
+&lt;parms type="mysql" prefix="mysql."&gt;...&lt;/parms&gt;
+&lt;parms prefix="mysql."&gt;...&lt;/parms&gt;
+&lt;parms prefix="oracle."&gt;...&lt;/parms&gt;
+&lt;parms prefix="whateveryouwant."&gt;...&lt;/parms&gt;
+&lt;parms prefix=""&gt;...&lt;/parms&gt;
+</pre>
+</td>
+<td>(Deprecated) Used in previous versions of DB4bix. Left for backward compatibility only and can be omitted.</td>
+</tr>
+
+<tr>
+<td><em>prefix</em></td>
+<td>You can define prefix which will be used as prefix for item keys where Db4bix will return results to. Or you can leave it empty as in last example.</td>
+</tr>
+
+<tr>
+<td><em>server</em></td>
+<td><em>type</em></td>
+<td align="center">
+<pre>
+&lt;parms prefix=""&gt;
+<strong>&lt;server&gt;</strong>
+...
+<strong>&lt;/server&gt;</strong>
+&lt;/parms&gt;
+</pre>
+</td>
+<td>Used in previous versions of DB4bix. Left for backward compatibility only. Should be present.</td>
+</tr>
+
+<tr>
+<td rowspan="4"><em>query</em><br>
+or<br>
+<em>multiquery</em>
+</td>
+<td><em>time</em></td>
+<td align="left" rowspan="4">
+<pre>
+&lt;parms prefix="mysql."&gt;&lt;server&gt;<br>
+
+<strong>&lt;query time="60" item="</strong>one<strong>"&gt;</strong><br>select 1<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;multiquery time="60" item="</strong>anotherone<strong>"&gt;</strong><br>select 1<br><strong>&lt;/multiquery&gt;</strong>
+
+<strong>&lt;query time="120" item="</strong>oneorzero<strong>" nodata="0"&gt;</strong><br>select 1<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" item="</strong>one|two|three<strong>"&gt;</strong><br>select 1, 2, 3<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" item="</strong>sameone|sametwo|samethree<strong>" type="column"&gt;</strong><br>select 1, 2, 3<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" items="</strong>var1|var2<strong>" type="list"&gt;</strong><br>show variables<br><strong>&lt;/query&gt;</strong>
+
+<strong>&lt;query time="60" items="</strong>variable[<strong>%1</strong>]<strong>" type="column"&gt;</strong><br>show variables<br><strong>&lt;/query&gt;</strong>
+
+<strong>
+&lt;query time="60" item="</strong>somekey[<strong>%1,%2</strong>]<strong>"&gt;</strong><br>SELECT inst_id, REPLACE(name,' ','_'), value <br>FROM stat_table <br>WHERE name IN ('user I/O wait time',<br>'physical read total bytes','physical write total bytes',<br>'consistent gets','physical reads')<br><strong>&lt;/query&gt;
+</strong>
+
+&lt;/server&gt;&lt;/parms&gt;
+</pre>
+</td>
+<td>Time interval in seconds between consequent requests to DB with this query.</td>
+</tr>
+
+<tr>
+<td><em>item</em><br>or<br><em>items</em></td>
+<td>
+<em>item</em> or <em>items</em> - are absolutely identical synonyms of attribute that holds Zabbix Item key or list of item keys separated with "|" (vertical line) where DB4bix should return results to.
+Final Zabbix item key will be constructed using <em>prefix</em> attribute value from <em>parms</em> element. So for attribute <em>item</em> with value <em>"one|two|three"</em> DB4bix will be looking for Zabbix items with keys <em>mysql.one, mysql.two and mysql.three</em> to return values to them. The mentioned above item keys should be presented on the <strong>same Zabbix Host where current configuration item resides</strong>.
+<br>There is some extention to this syntax: one can use placeholders (%1, %2, %3, ...) to construct item keys from data returned by query, e.g.
+item="somekey[%1,%2]" - means that DB4bix should construct item keys getting values from first column for <em>%1</em> placeholder and from second column for <em>%2</em> placeholder from query resut and use last column as the value for this item keys.
+If a query returns multiple rows then DB4bix constructs item keys by substituting placeholders per each row and as many times as many rows returned by the query.
+<br>Most efficient queries come up when one combines placeholders and list syntax, e.g.
+item="somekey1[%1,%2]|somekey2[%1,%2]|somekey3[%1,%2]|somekey4[%1,%2]" - this means that query may return any number of rows with 2 (placeholders) + 4 (values for 4 keys) = 7 columns per each row. Suppose query returns 100 rows, so one can get values for 4 (keys) * 100 (rows) = <strong>400 (items) with only one request to database!</strong> The whole tables are inserted to Zabbix per single query to database!
+</td>
+</tr>
+
+<tr>
+<td><em>type</em></td>
+<td><em>column</em> (default)  or <em>list</em> - parse type of returning results when several item values from returned from single query/multiquery.<br>
+Type <em>column</em> means that item values are returned in columns and they will be matched to their keys from the last column to the first column, i.e. last column corresponds to the last item key in <em>item</em> attribute, previous column corresponds to the previous item key and so on. If the number of columns is less than the number of item keys, the remaining item keys are ignored and vice versa.
+Type <em>list</em> means, that query returns multiple rows with two columns where the first column corresponds to the key and the second column corresponds to the value, i.e. query returns <em>list</em> of key-value pairs. So <em>query</em> element in this case behaves like filter: only keys that matches to item keys in <em>item</em> attribute will be returned.</td>
+</tr>
+
+<tr>
+<td><em>nodata</em></td>
+<td>(Optional) What DB4bix should return if no data will be returned by query.</td>
+</tr>
+
+<tr>
+<td rowspan="3"><em>discovery</em>
+</td>
+<td><em>names</em></td>
+<td align="left" rowspan="3">
+<pre>
+&lt;parms prefix="oracle."&gt;&lt;server&gt;
+<strong>
+&lt;discovery <br>time="</strong>120<strong>" <br>item="</strong>discovery.DB4bix.config[instanceid,{$DSN}]<strong>" <br>names="INST_ID"&gt;</strong><br>select inst_id from gv$instance<br><strong>&lt;/discovery&gt;</strong><br>
+&lt;query time="60" item="stats[%1,%2]"&gt;<br>SELECT inst_id, REPLACE(name,' ','_'), value <br>FROM gv$sysstat <br>WHERE name IN ('user I/O wait time','physical read total bytes',<br>'physical write total bytes','lob reads','lob writes',<br>'db block changes','db block gets','consistent gets',<br>'physical reads')<br>&lt;/query&gt;<br>
+&lt;/server&gt;&lt;/parms&gt;
+</pre>
+</td>
+<td>
+Discovery elements behaves almost same as query but with major difference: it should return to Zabbix Server JSON LLD (Low Level Discovery) structure. This structure contains information about all possibles values of so called [Zabbix LLD Macros](https://www.zabbix.com/documentation/4.4/manual/config/macros/lld_macros). DB4bix constructs this structures for you, but you should identify list of such LLD Macros in attribute <em>names</em>.
+You can use "|" (vertical line) symbol to construct list of LLD macros but remember that <strong>the number of columns returned by the query should correspond to the number of LLD macros</strong>. Number of rows is not limited but each row should contain unique combination of macros values or Zabbix will report "duplication" error to you.
+Another constraint: LLD macros names should be in upper case and may contain only letters and underscore symbols.<br>
+Please note, <strong>it is very convenient to use discovery items as configuration items for DB4bix!</strong> Do not forget to choose Zabbix item type as "Database monitor", because only this type contains "params" field in its userform, where you can type and edit DB4bix configuration.
+</td>
+</tr>
+
+<tr>
+<td><em>item</em></td>
+<td>Should contain item key for discovery item. As you can see from example you are allowed to use [Zabbix User Macros](https://www.zabbix.com/documentation/4.4/manual/config/macros/usermacros) in item keys. They will be substituted by DB4bix prior to return values to Zabbix.</td>
+</tr>
+
+<tr>
+<td><em>time</em></td>
+<td>Same as for <em>query</em> elements, see above.</td>
+</tr>
+
+</tbody>
+</table>
+
+
 
 ## How it works alltogether
 

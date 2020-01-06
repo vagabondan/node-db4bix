@@ -439,9 +439,12 @@ class TimerProcessor{
     //const keys = q.item.split("|"); // can be key1|key2|key3
     return table.reduce(
       (kvAcc, row) => {
-        // for each key in item from right to left
         const obj = {};
-        for(let i = keys.length; --i >= 0;){
+        // in case keys.length !== row.length:
+        // for each key in item from right to left
+        // but we shoud stop whenever keys or row columns comes to end
+        const iMin = (keys.length - row.length) > 0 ? (keys.length - row.length) : 0 ;
+        for(let i = keys.length; --i >= iMin ;){
           const macros = keys[i].match(/%\d+/g) || [];
           const key = macros.reduce((keyAcc, m) => keyAcc.replace(m, row[parseInt(m.substring(1))-1]), keys[i]);  // key resolved
           obj[key] = row[row.length - keys.length + i];

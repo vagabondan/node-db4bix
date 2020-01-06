@@ -163,25 +163,25 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="4">Global</td>
 <td><em>updateConfigPeriod</em></td>
-<td align="center">updateConfigPeriod=30</td>
+<td align="center"><pre>updateConfigPeriod=30</pre></td>
 <td>Time interval in seconds between consequent updating configuration from Zabbix Servers.</td>
 </tr>
 
 <tr>
 <td>[<em>Zabbix</em>.Name]</td>
-<td align="center">[Zabbix.Prod]<br> [Zabbix.Test]<br> [Zabbix.Srv01]</td>
+<td align="center"><pre>[Zabbix.Prod]<br> [Zabbix.Test]<br> [Zabbix.Srv01]</pre></td>
 <td>Section name for Zabbix server instance connection parameters. You can specify any number of different Zabbix Servers and they will be served by DB4bix independently and simultaneously.</td>
 </tr>
 
 <tr>
 <td>[<em>DB</em>.Name]</td>
-<td align="center">[DB.BillingProd]<br> [DB.PGTest]<br> [DB.CMDB]</td>
+<td align="center"><pre>[DB.BillingProd]<br> [DB.PGTest]<br> [DB.CMDB]</pre></td>
 <td>Section name for Database instance connection parameters. You can specify any number of different databases.</td>
 </tr>
 
 <tr>
 <td>[<em>Pool</em>.Name]</td>
-<td align="center">[Pool.Common]<br> [Pool.OldDBs]<br> [Pool.TestDBs]</td>
+<td align="center"><pre>[Pool.Common]<br> [Pool.OldDBs]<br> [Pool.TestDBs]</pre></td>
 <td>Section name for DB connection Pool configuration parameters. You can specify any number of different Pools. Pool names are then referenced in DB sections in <em>pool</em> parameters. Pools manage network connections from DB4bix to DB instances.</td>
 </tr>
 
@@ -193,48 +193,48 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="8">[Zabbix.<em>Name</em>]</td>
 <td><em>host</em></td>
-<td align="center">host=zbxsrv01.yourdomain<br>host=192.168.2.1</td>
+<td align="center"><pre>host=zbxsrv01.yourdomain<br>host=192.168.2.1</pre></td>
 <td>FQDN or IP address of Zabbix server instance, described in current Zabbix section</td>
 </tr>
 <tr>
 <td><em>port</em></td>
-<td align="center">port=10051</td>
+<td align="center"><pre>port=10051</pre></td>
 
 <td>Zabbix Server port</td>
 </tr>
 <tr>
 <td><em>proxyName</em></td>
-<td align="center">proxyName=DB4bix.01</td>
+<td align="center"><pre>proxyName=DB4bix.01</pre></td>
 
 <td>Name of Zabbix Proxy that should be defined at current Zabbix Server instance to allow DB4bix communicate with Zabbix Server. Proxy mode should be set to <em><strong>Active</strong></em>.</td>
 </tr>
 <tr>
 <td><em>timeoutMillis</em></td>
-<td align="center">timeoutMillis=10000</td>
+<td align="center"><pre>timeoutMillis=10000</pre></td>
 
 <td>Network timeout for Db4bix to wait response from Zabbix Server</td>
 </tr>
 <tr>
 <td><em>sendDataPeriod</em></td>
-<td align="center">sendDataPeriod=61</td>
+<td align="center"><pre>sendDataPeriod=61</pre></td>
 
 <td>Time interval between consequent data sending actions to Zabbix Server. DB4bix keeps metrics from databases in local buffer and send bulk requests to Zabbix Server trappers with frequency configured with this parameter.</td>
 </tr>
 <tr>
 <td><em>configSuffix</em></td>
-<td align="center">configSuffix=DB4bix.config</td>
+<td align="center"><pre>configSuffix=DB4bix.config</pre></td>
 
 <td>Zabbix Server item keys suffix where users expect to define DB4bix configuration on Zabbix Server Frontend side. This configuration should define SQL selects with some metadata for DB4bix to understand where it should put the resuts. See below section <a href="#zabbix-server-configuration-items">Zabbix Server configuration items</a> for details.</td>
 </tr>
 <tr>
 <td><em>version</em></td>
-<td align="center">version=4.2.4</td>
+<td align="center"><pre>version=4.2.4</pre></td>
 
 <td>Zabbix Server version for DB4bix to choose the right Zabbix internal protocol to communicate with Zabbix Server. For now only 4.2.4 and higher versions are supported. We haven't tested it with lower versions yet.</td>
 </tr>
 <tr>
 <td><em>dbs[]</em></td>
-<td align="center">dbs[] = DB01 <br> dbs[] = DB02 <br> dbs[] = DB03 <br> etc</td>
+<td align="center"><pre>dbs[] = DB01 <br>dbs[] = DB02 <br>dbs[] = DB03 <br>etc</pre></td>
 
 <td>List of databases names allowed to monitor with current Zabbix Server instance. Syntax expects user to add to list one DB per row, so you might have to define several rows with <em>dbs[]</em> inside one Zabbix Server section</td>
 </tr>
@@ -248,49 +248,49 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="8">[DB.<em>Name</em>]</td>
 <td><em>type</em></td>
-<td align="center">type=mssql<br>type=postgres<br>type=oracle<br>type=mysql</td>
+<td align="center"><pre>type=mssql<br>type=postgres<br>type=oracle<br>type=mysql</pre></td>
 <td>Defines which client driver will be used to establish connections to DB instance. There are slight differences in parameters for different DB types.</td>
 </tr>
 
 <tr>
 <td><em>instance</em></td>
-<td align="center">instance=BillingDB</td>
+<td align="center"><pre>instance=BillingDB</pre></td>
 <td>DB instance name or SID for Oracle DB type. You should know that information from database administrators.</td>
 </tr>
 
 <tr>
 <td><em>host</em></td>
-<td align="center">host=billingdb.yourdomain<br>host=172.16.15.5</td>
+<td align="center"><pre>host=billingdb.yourdomain<br>host=172.16.15.5</pre></td>
 <td>FQDN or IP address of a host of your DBMS.</td>
 </tr>
 
 <tr>
 <td><em>port</em></td>
-<td align="center">port=5432</td>
+<td align="center"><pre>port=5432</pre></td>
 <td>Port for connection establish with your DBMS. If null or empty, default will be used for this type of DB.</td>
 </tr>
 
 <tr>
 <td><em>user</em></td>
-<td align="center">user=thom</td>
+<td align="center"><pre>user=thom</pre></td>
 <td>Username/schemaname for your DB.</td>
 </tr>
 
 <tr>
 <td><em>password</em></td>
-<td align="center">password=your.supersecret.password</td>
+<td align="center"><pre>password=your.supersecret.password</pre></td>
 <td>Password for user for your DB. Yes, keep open passwords in plain text is not very good idea. We will be glad to see more reasonable proposals or even PRs ;-)</td>
 </tr>
 
 <tr>
 <td><em>pool</em></td>
-<td align="center">pool=Common</td>
+<td align="center"><pre>pool=Common</pre></td>
 <td>Pool name which settings will be used to manage network connections from Db4bix to current DB.</td>
 </tr>
 
 <tr>
 <td><em>connectString</em></td>
-<td align="center">connectString=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=mymachine.example.com)(PORT=1521))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=orcl)))</td>
+<td align="center"><pre>connectString=<br>(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)<br>(HOST=mymachine.example.com)(PORT=1521))<br>(CONNECT_DATA=(SERVER=DEDICATED)<br>(SERVICE_NAME=orcl)))</pre></td>
 <td>[ORACLE only]: Connection string used to connect to Oracle DBs. Possible formats are described <a href="https://oracle.github.io/node-oracledb/doc/api.html#-142-connection-strings">here</a>.</td>
 </tr>
 
@@ -302,31 +302,31 @@ Configuration file keeps the following parameters listed in the table below:
 <tr>
 <td rowspan="8">[Pool.<em>Name</em>]</td>
 <td><em>max</em></td>
-<td align="center">max=10</td>
+<td align="center"><pre>max=10</pre></td>
 <td>Maximum number of concurrent connections that DB4bix can establish to each DB referencing this Pool.</td>
 </tr>
 
 <tr>
 <td><em>min</em></td>
-<td align="center">min=0</td>
+<td align="center"><pre>min=0</pre></td>
 <td>Minimum number of concurrent connections that DB4bix will keep open even if no activity with DB is planning.</td>
 </tr>
 
 <tr>
 <td><em>idleTimeoutMillis</em></td>
-<td align="center">idleTimeoutMillis=30000</td>
+<td align="center"><pre>idleTimeoutMillis=30000</pre></td>
 <td>Timeout in millisecconds after which DB4bix starts to terminate unused connections. Specific behaviour is defined by DB client library.</td>
 </tr>
 
 <tr>
 <td><em>connectionTimeoutMillis</em></td>
-<td align="center">connectionTimeoutMillis=30000</td>
+<td align="center"><pre>connectionTimeoutMillis=30000</pre></td>
 <td>Timeout in millisecconds after which DB4bix reports unsuccessful connection attempt to DB. Specific behaviour is defined by DB client library.</td>
 </tr>
 
 <tr>
 <td><em>keepAliveSec</em></td>
-<td align="center">keepAliveSec=60</td>
+<td align="center"><pre>keepAliveSec=60</pre></td>
 <td>Period in seconds for sending keepalive request from DB4bix to DB. Some databases requires keepalive checks from clients.</td>
 </tr>
 

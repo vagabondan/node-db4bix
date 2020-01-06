@@ -492,7 +492,7 @@ Type <em>list</em> means, that query returns multiple rows with two columns wher
 <pre>
 &lt;parms prefix="oracle."&gt;&lt;server&gt;
 <strong>
-&lt;discovery <br>time="</strong>120<strong>" <br>item="</strong>discovery.DB4bix.config[instanceid,{$DSN}]<strong>" <br>names="INST_ID"&gt;</strong><br>select inst_id from gv$instance<br><strong>&lt;/discovery&gt;</strong><br>
+&lt;discovery <br>time="</strong>120<strong>" <br>item="</strong>discovery.<strong>DB4bix.config[</strong>instanceid<strong>,{$DSN}]" <br>names="INST_ID"&gt;</strong><br>select inst_id from gv$instance<br><strong>&lt;/discovery&gt;</strong><br>
 &lt;query time="60" item="stats[%1,%2]"&gt;<br>SELECT inst_id, REPLACE(name,' ','_'), value <br>FROM gv$sysstat <br>WHERE name IN ('user I/O wait time','physical read total bytes',<br>'physical write total bytes','lob reads','lob writes',<br>'db block changes','db block gets','consistent gets',<br>'physical reads')<br>&lt;/query&gt;<br>
 &lt;/server&gt;&lt;/parms&gt;
 </pre>

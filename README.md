@@ -523,7 +523,24 @@ Please note, <strong>it is very convenient to use discovery items as configurati
 ## How it works alltogether
 
 Local file config (*db4bix.conf*) defines which Zabbix Servers DB4bix may connect to. Also it defines how DB4bix may connect to databases which it can monitor.
-DB4bix connects to Zabbix Server like an ordinary Zabbix Proxy. 
-Of course for it may be possible, corresponding Zabbix Proxy name should be defined at Zabbix Server and DB4bix should know this name too. This is the reason why you have to define *proxyName* parameter inside [*Zabbix*.Name] section of *db4bix.conf*.
 
-**TBD**
+DB4bix connects to Zabbix Server like an ordinary Zabbix Proxy. 
+Of course for it may happen, corresponding Zabbix Proxy name should be defined at Zabbix Server and DB4bix should know this name too. This is the reason why you have to define *proxyName* parameter inside [*Zabbix*.Name] section of *db4bix.conf*.
+
+DB4bix requests configuration data and Zabbix Server responds with information about all hosts attached to DB4bix proxy, items, templates, macros etc.
+
+It is rather convenient and reasonable to create its own separate Zabbix Host to each DB instance, though nothing prevents you to keep configuration items of several DBs on one Zabbix Host. It is only our recommendations to separate them.
+
+After configuration is received, DB4bix scans all items of all hosts for *configSuffix* and reads configurations from matching items. Items type should be *Database monitor* because only such item type has *params* field in its user web form that user can edit and read.
+
+While reading configuration items DB4bix:
+
+1. groups all queries by Database instances (second parameter in configuration item key) and *time* attributes (time interval between two consequent queries).
+2. substitutes Zabbix macros with its values in item keys and queries
+3. updates or creates periodical async *monitors* to query databases
+
+Each monitor queries its database when time comes and saves results to local DB4bix storage mapping them to concrete Zabbix item ids.
+
+Separate async periodic procedure sends all storage data with bulk request to Zabbix Servers according to *sendDataPeriod* parameters in *Zabbix sections* in local DB4bix config file.
+
+Then everything repeats.

@@ -72,20 +72,13 @@ class DB{
   }
 
   async init(){
+    debug.debug(`DB ${this.conf.name} connection init.`);
     await this.connector.init({conf: this.conf});
-    debug.debug(`DB ${this.conf.name} has been inited.`);
+    debug.debug(`DB ${this.conf.name} connection has been inited.`);
   }
 
   async query(q){
-    /*
-    if(q.includes("DISTINCT")){
-      debug.debug("[" + new Date().toISOLocalDateTime() + "]: "+ q);
-      await msleep(14000);
-    }else{
-      const time = Math.random()*45000 +5000;
-      await msleep(time);
-    }
-    */
+    debug.debug(`DB ${this.conf.name} query:`,q);
     return await this.connector.query(q);
   }
 

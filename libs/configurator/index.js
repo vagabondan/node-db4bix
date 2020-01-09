@@ -127,12 +127,14 @@ class Configurator {
   }
 
   async getConfigsFromZabbix(){
+    debug.debug("getConfigsFromZabbix started");
     const zabbixes = this.zabbixes;
     zabbixes.forEach(z => z.zabbixSender = z.zabbixSender || new Sender(z));
     return Promise.all(zabbixes.map(z => z.zabbixSender.requestConfig()));
   }
 
   parseXMLConfig({xml}){
+    debug.debug("parseXMLConfig start.");
     let jsonObj = {};
     const options = this.xmlParserOptions;
 
@@ -153,10 +155,15 @@ class Configurator {
         : null ;
     });
 
-    return Object.assign({
+    const result = Object.assign({
       prefix: jsonObj.parms.prefix,
       type: jsonObj.parms.type,
     }, jsonObj.parms.server);
+
+    debug.debug("parseXMLConfig parsed result:",result);
+
+    debug.debug("parseXMLConfig finished");
+    return result;
   }
 
   /**

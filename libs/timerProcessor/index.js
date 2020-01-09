@@ -569,7 +569,7 @@ class TimerProcessor{
             const monitoringData = TimerProcessor.convertToMonitoringData({query: q, table, items: this.getItems({zabbixName, hostid})});
             monitoringData.data.length > 0 && this.postProcessMonitoingData({monitoringData, sender: this.getZabbixSender({zabbixName})});
           }catch(e){
-            debug.warn(e.message);
+            debug.warn("DB:",connector && connector.conf && connector.conf.name,e.message,"connection properties:",Object.entries(connector.conf).filter(([key, ]) => key !== 'password'),"query:",q);
           }finally{
             arr[i].status = "done";
           }

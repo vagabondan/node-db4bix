@@ -1,6 +1,6 @@
 {
   "name": "db4bix",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "DB4bix in Node.js: DB monitoring tool for Zabbix",
   "main": "index.js",
   "gypfile": true,

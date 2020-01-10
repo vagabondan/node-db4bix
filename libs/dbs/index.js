@@ -27,7 +27,7 @@ function LoadModules(path) {
       // the key in this dictionary can be whatever you want
       // just make sure it won't override other modules
       // TODO implement name conflict resolving!
-      module_holder[alias] = new dbModule();
+      module_holder[alias] = dbModule; //Do NOT create DB class instance here! No new ()!!!
     }else{
       // do a tree walk
       let f, l = files.length;
@@ -47,7 +47,7 @@ function LoadModules(path) {
     // the key in this dictionary can be whatever you want
     // just make sure it won't override other modules
     // TODO implement name conflict resolving!
-    module_holder[alias] = new dbModule();
+    module_holder[alias] = dbModule; // Do NOT create instance DB class! No new()!!!
   }
 }
 let DIR = path_module.join(__dirname, 'db-plugins');
@@ -66,7 +66,7 @@ class DB{
       JSON.stringify(Object.keys(module_holder)));
     Object.assign(this,{
       conf,
-      connector: module_holder[conf.type]
+      connector: new module_holder[conf.type]()
     });
     debug.debug(`DB ${this.conf.name} of type ${this.conf.type} has been loaded.`);
   }

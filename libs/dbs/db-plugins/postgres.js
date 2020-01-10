@@ -11,7 +11,8 @@ class Postgres{
   }
 
   async init({conf}){
-    conf = {
+    this.conf = {
+        name: conf.name,
         user: conf.user,
         password: conf.password,
         host: conf.host,
@@ -22,14 +23,16 @@ class Postgres{
         idleTimeoutMillis: parseInt(conf.pool.idleTimeoutMillis),
         connectionTimeoutMillis: parseInt(conf.pool.connectionTimeoutMillis),
     };
-    this.pool = new Pool(conf);
+    this.pool = new Pool(this.conf);
+    const dbName = this.conf.name;
     this.pool.on('error', err => {
-        debug.error("Connection error", err);
+        debug.error("DB",dbName,"Connection error", err);
     });
   }
 
   close(){
-    this.pool.end(()=>debug.debug("Pool has ended."));
+    const dbName = this.conf.name;
+    this.pool.end(()=>debug.debug("DB",dbName,"Pool has ended."));
     this.pool = undefined;
   }
 
@@ -39,12 +42,13 @@ class Postgres{
    * @returns Array of Arrays: [[c1,c2,...,cn],[c1,c2,...,cn],..., ] => dimension: rows x columns
    */
   async query(q){
+    const dbName = this.conf.name;
     const client = await this.pool.connect();
     let result={};
     try{
       result = await client.query(q);
     }catch(e){
-      debug.error("Exception on query: "+q,e);
+      debug.error("DB",dbName,"Exception on query: "+q,e);
       result.rows = [];
     }finally{
       // Issue 2: need to catch exceptions and release connection
@@ -61,7 +65,7 @@ class Postgres{
         try{
           return c.trim();
         }catch(e){
-          debug.debug("Error on trimming value "+c+": "+e.message);
+          //debug.debug("DB",dbName,"Error on trimming value "+c+": "+e.message);
           return c;
         }
       })

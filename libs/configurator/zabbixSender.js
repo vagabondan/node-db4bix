@@ -33,10 +33,8 @@ Date.prototype.getClockNs = function(){
 */
 
 const addClockNs = function(obj, clockNs){
-  debug.debug("addClockNs(",obj,clockNs,")");
   clockNs = clockNs || new Date().getClockNs();
   Array.isArray(obj) ? obj.push(clockNs.clock, clockNs.ns) : Object.assign(obj, clockNs);
-  debug.debug("addClockNs: resulting obj=",obj);
   return obj;
 };
 
@@ -228,6 +226,7 @@ class ZabbixSender {
    * throws exceptions if something goes wrong
    */
   async send(data){
+    debug.debug("Sending to Zabbix Server",this,"data",data);
     data = ZabbixSender.protocolWrap(data);
     const timeout = defer(new Error("Abort connecting to Zabbix Server: "+
     this.name+"@"+this.host+":"+this.port+" by timeout set to " + this.timeout + " ms."));

@@ -4,7 +4,7 @@ services:
     image: vagabondan/db4bix
     restart: unless-stopped
     environment:
-      - "DEBUG=db4bix:*:info"
+      - "DEBUG=*"
     volumes:
       - "./config:/app/config"
     networks:

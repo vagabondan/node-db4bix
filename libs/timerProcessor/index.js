@@ -261,7 +261,7 @@ class TimerProcessor{
 
   async sendData(){
     const dataArray = await this.storage.popAll();
-    const groupedBySender = dataArray.reduce((acc, d) =>{
+    const groupedBySender = dataArray.reduce((acc, d) => {
       if(acc[d.sender.name]){
         acc[d.sender.name].data = acc[d.sender.name].data.concat(d.data);
       }else{
@@ -271,8 +271,19 @@ class TimerProcessor{
       }
       return acc;
     },{});
+    const storage = this.storage;
     Object.keys(groupedBySender).forEach(name => {
-      groupedBySender[name].sender.sendHistoryData(groupedBySender[name].data)
+      try{
+        groupedBySender[name].sender.sendHistoryData(groupedBySender[name].data);
+      }catch(e){
+        debug.error("Failed send history data to Zabbix",name,e);
+        // save data to resend later
+        // TODO implement check for storage size and data age
+        storage.push({
+          sender: groupedBySender[name].sender,
+          data: groupedBySender[name].data
+        });
+      }
     });
     dataArray.length = 0;
   }

@@ -4,3 +4,10 @@ npm-debug
 test
 logs
 build
+Dockerfile
+docker-compose.*ml
+config
+.github
+.vscode
+templates
+other_tests

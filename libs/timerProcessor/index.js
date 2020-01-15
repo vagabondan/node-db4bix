@@ -311,6 +311,7 @@ class TimerProcessor{
    * @returns next update period of everything
    */
   async updatePeriodically(){
+    debug.debug("updatePeriodically started");
     try{
       this.storage = this.storage || new Storage();
       const configurator = new Configurator();
@@ -335,6 +336,7 @@ class TimerProcessor{
     }catch(e){
       debug.error("Error on updatePeriodically: "+e.message,e);
     }
+    debug.debug("updatePeriodically finished");
     return this.configurator.getUpdatePeriod()
   }
 
@@ -380,7 +382,6 @@ class TimerProcessor{
       // if history is empty fill history cache with empty strings: [[historyValue, historyClock, historyNs],[], ...]
       history = zbxCache.add(itemid, preprocSteps.reduce(acc => (acc.push(["", "", ""]), acc), []));
 
-    let throwMe = undefined;
     // preprocess step by step
     itemValue = preprocSteps.reduce(
       // [item_value, clock, ns, item_value_type, 
@@ -394,12 +395,12 @@ class TimerProcessor{
           preprocessed = this.zbxPreproc.preprocess(input);
         }catch(e){
           if(!history[i][0] || !history[i][1] || history[i][1] <= 0)
-            debug.info("Exception while preprocessing Zabbix["+zabbixName+"]: itemid["+itemid+"]: step["+i+"]: input =",input,e);
+            debug.info("Preprocessing for Zabbix["+zabbixName+"]: itemid["+itemid+"]: step["+i+"]: waits next measurement to be calculated. Input =",
+            input,"Following exception is just for your info:",e);
           else
             debug.error("Exception while preprocessing Zabbix["+zabbixName+"]: itemid["+itemid+"]: step["+i+"]: input =",input,e);
-          // we do not throw immediately to be able to initialize the whole chain of history values
-          //throwMe = throwMe || e;
-          // we throw immediately because only one change element (that needs history value) is allowed
+          // throw immediately because only one change element (that needs history value) is allowed
+          e.isReported = true;
           throw(e);
         }finally{
           // history value
@@ -432,7 +433,10 @@ class TimerProcessor{
       try{
         acc.push(this.getPreprocessedItem({item, zabbixName}))
       }catch(e){
-        debug.info("Zabbix["+zabbixName+"]: itemid["+item[0]+"]: skipped from results because of exception",e);
+        // Exception body should be printed earlier
+        debug.info("Zabbix["+zabbixName+"]: itemid["+item[0]+"]: skipped from results because of exception",
+        e.isReported ? "reported earlier" : e
+        );
       }
       return acc;
     }, []);

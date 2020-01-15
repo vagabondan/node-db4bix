@@ -1,6 +1,7 @@
 const oracledb = require('oracledb');
 const assert = require('assert');
 const debug = require('../../../utils/debug-vars')('ORACLE');
+const uuidv4 = require('uuid/v4');
 debug.debug('Init');
 
 class Oracle{
@@ -22,7 +23,7 @@ class Oracle{
 
       // pool options
       homogeneous: true, // all connections in the pool have the same credentials
-      poolAlias: 'default', // set an alias to allow access to the pool via a name.
+      poolAlias: uuidv4(), //'default', // set an alias to allow access to the pool via a name.
       poolIncrement: 1, // only grow the pool by one connection at a time
       poolMax: parseInt(conf.pool.max), // maximum size of the pool. Increase UV_THREADPOOL_SIZE if you increase poolMax
       poolMin: parseInt(conf.pool.min), // start with no connections; let the pool shrink completely
@@ -34,10 +35,10 @@ class Oracle{
     try{
       this.pool = await oracledb.createPool(this.conf);
     }catch(err){
-      debug.error(err);
-      throw(err); 
+      debug.error(`DB ${conf.name} failed creating pool`,err);
+      //throw(err); 
     }
-    debug.debug("Connection pool started");
+    debug.debug(`DB ${conf.name} connection pool started`);
   }
 
   close(){
@@ -45,7 +46,7 @@ class Oracle{
     // connections are in use, or force it closed after 10 seconds
     // If this hangs, you may need DISABLE_OOB=ON in a sqlnet.ora file
     const conf = this.conf;
-    this.pool.close(10)
+    this.pool && this.pool.close(10)
     .then(() => debug.debug('Pool closed'))
     .catch(e => debug.error("Error while closing connection to Oracle DB "+
       JSON.stringify({connectString: conf.connectString}),
@@ -86,7 +87,7 @@ class Oracle{
         try{
           return c.trim();
         }catch(e){
-          debug.debug("Error on trimming value "+c+": "+e.message);
+          //debug.debug("Error on trimming value "+c+": "+e.message);
           return c;
         }
       })

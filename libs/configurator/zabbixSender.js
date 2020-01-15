@@ -48,7 +48,8 @@ class ZabbixSender {
       port: port || 10051,
       proxyName: proxyName || os.hostname(),
       timeout: timeout || 5000,
-      version: version || "4.2.4",
+      // supports only 4.2.4 protocol version for now
+      version: "4.2.4",//version || "4.2.4", 
       hostname: hostname || os.hostname(),
       session: session || '61cc43a7f49d7712fd81bdcb53198d13',
     });
@@ -195,11 +196,12 @@ class ZabbixSender {
    * @returns {Promise<any>}
    */
   async requestConfig(){
-     return this.send({
-       request: 'proxy config',
-       host: this.proxyName,
-       version: this.version
-     });
+    debug.debug("requestConfig started");
+    return this.send({
+      request: 'proxy config',
+      host: this.proxyName,
+      version: this.version
+    });
   }
 
   /**
@@ -269,9 +271,16 @@ class ZabbixSender {
    * @returns {any}
    */
   static parseResponse(response){
+    debug.debug("Got response of " + (response ? response.length : 0) +" bytes length");
     if(!response.slice(0, ZBXD_HEADER.length).equals(ZBXD_HEADER))
       throw "Got invalid response from server: " + response;
-    return JSON.parse(response.slice(ZBX_HEADER_LENGTH));
+    const result = response.slice(ZBX_HEADER_LENGTH);
+    const printLength = 50;
+    debug.debug("Zabbix Server response:",
+      result.toString().substring(0,result.length < printLength ? result.length : printLength),
+      printLength < result.length ? "..." : ""
+    );
+    return JSON.parse(result);
   }
 
 }

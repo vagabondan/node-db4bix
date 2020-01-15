@@ -14,21 +14,7 @@ const debug = require('../utils/debug-vars')('Configurator');
 debug.debug('Init');
 
 const zabbix_conf_path = './config/db4bix.conf';
-/*
-Date.prototype.addHours = function(h) {
-  this.setTime(this.getTime() + (h*60*60*1000));
-  return this;
-};
 
-Date.prototype.toISOLocalDateTime = function() {
-  return this.addHours(3).toISOString().replace(/\.\d+/, '');
-};
-
-Date.prototype.getClockNs = function(){
-  const timestamp = this.getTime()/1000;
-  return {clock: ~~timestamp, ns: (timestamp % 1).toFixed(3)*1e9}
-};
-*/
 const addClockNs = function(obj, clockNs){
   clockNs = clockNs || new Date().getClockNs();
   Array.isArray(obj) ? obj.push(clockNs.clock, clockNs.ns) : Object.assign(obj, clockNs);
@@ -252,8 +238,9 @@ class Configurator {
 
   /**
    * Zabbix data helper
-   * @param source
-   * @param fields
+   * @param source - object with key "fields" as an array of fields
+   * @param fields - (optional) array of fields which offsets ones wants to get from "source" object
+   * @returns object where keys are "fields" and values are the offsets of fields in "source.fields" array
    */
   static getFieldOffsetMap({source, fields}){
     fields = fields || source.fields;
@@ -276,10 +263,28 @@ class Configurator {
   }
 
   async updateConfiguration(){
+    debug.debug("Updating configuration");
     const zbxConfigs = await this.getConfigsFromZabbix();
+    debug.debug("Configurations from Zabbix Servers have been parsed");
     const zabbixes = this.zabbixes;
+    let itemsOffsets, hostsOffsets;
     for (let i=0; i < zbxConfigs.length; ++i) { // for each Zabbix Server
       let {hosts, hostmacro, items, item_preproc} = zbxConfigs[i];
+
+      //filter out 'disabled' entities
+      itemsOffsets = itemsOffsets || Configurator.getFieldOffsetMap({source: items, fields:['status','hostid']});
+      hostsOffsets = hostsOffsets || Configurator.getFieldOffsetMap({source: hosts, fields:['status','hostid']});
+
+      hosts.data = hosts.data.filter(h => h[hostsOffsets['status']] === 0);
+      items.data = items.data.filter(i => 
+        i[itemsOffsets['status']] === 0 
+        && 
+        hosts.data.find(h => h[hostsOffsets['hostid']] === i[itemsOffsets['hostid']]));
+
+
+      // TODO delete monitors for "disabled" entities
+
+
       // filter out useful fields
       items = Configurator.getUsefulFields({fields: ["itemid", "type", "hostid", "key_", "status", "value_type", "params"], source: items});
       hosts = Configurator.getUsefulFields({fields: ["hostid", "host", "status", "name"], source: hosts});
@@ -328,7 +333,7 @@ class Configurator {
        * Regexp for config suffix in Zabbix: DB4bix.config[...,<DSN>]
        * @type {RegExp}
        */
-      const cfgSuffixRegExp = new RegExp(".*\\."+escapeStringRegexp(zabbix.configSuffix)+"\\[(?:.*,)?([^,\\[\\]\\s]+){1}\\]","i");
+      const cfgSuffixRegExp = new RegExp(".*"+escapeStringRegexp(zabbix.configSuffix)+"\\[(?:.*,)?([^,\\[\\]\\s]+){1}\\]","i");
       // Find all configuration items within Zabbix Server
       const cfgItems = zcfg.items.data.filter(item => cfgSuffixRegExp.test(item[keyOffset]));
       zabbix.params = cfgItems.reduce((acc, item) =>{
@@ -353,6 +358,7 @@ class Configurator {
         }
       ,[]);
     });
+    debug.debug("Configuration has been updated");
     return this.getMonitorConfig();
   }
 

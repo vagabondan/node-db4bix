@@ -337,9 +337,10 @@ class Configurator {
       // Find all configuration items within Zabbix Server
       const cfgItems = zcfg.items.data.filter(item => cfgSuffixRegExp.test(item[keyOffset]));
       zabbix.params = cfgItems.reduce((acc, item) =>{
+          let dbName;
           try{
-            // First, check security consuderations
-            const dbName = cfgSuffixRegExp.exec(item[keyOffset])[1];
+            // First, check security considerations
+            dbName = cfgSuffixRegExp.exec(item[keyOffset])[1];
             assert.ok(zabbix.fileConfig.dbs.includes(dbName),"Zabbix server "+zabbix.name+" is not allowed to monitor DB "+dbName+
               ". Please check DB4bix "+zabbix.proxyName+" file config or configuration item {"+
               ["itemid","hostid","key_"].reduce((acc, key)=> acc.concat(key,": ",item[itemsOffsets[key]],", "),"")+
@@ -352,7 +353,10 @@ class Configurator {
               timers: Configurator.groupParamsByTime({params: this.parseXMLConfig({xml: item[paramsOffset]})})
             })
           }catch(e){
-            debug.warn(e.message,e);
+            debug.warn("Zabbix server "+zabbix.name+" DB "+dbName+
+            ". Configuration item {"+
+            ["itemid","hostid","key_"].reduce((acc, key)=> acc.concat(key,": ",item[itemsOffsets[key]],", "),"")+
+            "} is skipped."+e.message,e);
           }
           return acc;
         }
